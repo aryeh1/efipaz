@@ -1,6 +1,6 @@
 # Repository Audit Report
 
-Generated: Tue Jan 13 16:49:46 UTC 2026
+Generated: Tue Jan 13 17:02:08 UTC 2026
 
 ## Summary
 
@@ -16,18 +16,18 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 
 | File | Size | UTF-8 | Content | Design |
 |------|------|-------|---------|--------|
-| index.html | 10471B | YES | OK | NEW |
-| spiritual.html | 12986B | YES | OK | NEW |
-| travel.html | 8521B | YES | OK | NEW |
-| personal.html | 5407B | YES | OK | NEW |
-| living.html | 7333B | YES | OK | NEW |
-| archive.html | 8356B | YES | OK | NEW |
-| en/index.html | 9527B | YES | OK | NEW |
-| en/spiritual.html | 11594B | YES | OK | NEW |
-| en/travel.html | 8353B | YES | OK | NEW |
-| en/personal.html | 5347B | YES | OK | NEW |
-| en/living.html | 6982B | YES | OK | NEW |
-| en/archive.html | 8056B | YES | OK | NEW |
+| index.html | 8908B | YES | OK | NEW |
+| spiritual.html | 12954B | YES | OK | NEW |
+| travel.html | 8496B | YES | OK | NEW |
+| personal.html | 5382B | YES | OK | NEW |
+| living.html | 7308B | YES | OK | NEW |
+| archive.html | 8307B | YES | OK | NEW |
+| en/index.html | 8168B | YES | OK | NEW |
+| en/spiritual.html | 11569B | YES | OK | NEW |
+| en/travel.html | 8335B | YES | OK | NEW |
+| en/personal.html | 5329B | YES | OK | NEW |
+| en/living.html | 6964B | YES | OK | NEW |
+| en/archive.html | 8021B | YES | OK | NEW |
 
 ## All HTML/HTM Files by Directory
 
@@ -37,19 +37,19 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 |------|------|-------|---------|--------|
 | Personal_Training.html | 12058B | YES | OK | OLD |
 | Quotes.html | 2483B | NO | OK | OLD |
-| archive.html | 8356B | YES | OK | NEW |
-| business.html | 14100B | YES | OK | NEW |
-| ethics.html | 13099B | YES | OK | NEW |
-| index-modern.html | 13184B | YES | OK | NEW |
+| archive.html | 8307B | YES | OK | NEW |
+| business.html | 14083B | YES | OK | NEW |
+| ethics.html | 13075B | YES | OK | NEW |
+| index-modern.html | 13116B | YES | OK | NEW |
 | index-original.html | 2493B | NO | OK | OLD |
-| index.html | 10471B | YES | OK | NEW |
+| index.html | 8908B | YES | OK | NEW |
 | index_xx.html | 3679B | YES | OK | OLD |
 | indexold.html | 8238B | YES | OK | OLD |
-| living.html | 7333B | YES | OK | NEW |
-| personal.html | 5407B | YES | OK | NEW |
+| living.html | 7308B | YES | OK | NEW |
+| personal.html | 5382B | YES | OK | NEW |
 | re-direct_to_Living.html | 669B | NO | OK | OLD |
-| spiritual.html | 12986B | YES | OK | NEW |
-| travel.html | 8521B | YES | OK | NEW |
+| spiritual.html | 12954B | YES | OK | NEW |
+| travel.html | 8496B | YES | OK | NEW |
 
 ### /BC (9 files)
 
@@ -69,14 +69,14 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 
 | File | Size | UTF-8 | Content | Design |
 |------|------|-------|---------|--------|
-| Burma/index.html | 5365B | YES | OK | NEW |
+| Burma/index.html | 5340B | YES | OK | NEW |
 
 ### /DeMello (6 files)
 
 | File | Size | UTF-8 | Content | Design |
 |------|------|-------|---------|--------|
 | DeMello/DeMelloEn1.html | 6154B | YES | OK | OLD |
-| DeMello/ShortWisdomStories.htm | 313903B | YES | GIBBERISH | OLD |
+| DeMello/ShortWisdomStories.htm | 313800B | YES | OK | OLD |
 | DeMello/demello.html | 6445B | NO | OK | OLD |
 | DeMello/demelloAboutHeb.html | 17577B | YES | OK | OLD |
 | DeMello/demello_video.html | 2615B | NO | OK | OLD |
@@ -140,7 +140,7 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 | File | Size | UTF-8 | Content | Design |
 |------|------|-------|---------|--------|
 | LightOfIndia/bottom.html | 157B | NO | OK | OLD |
-| LightOfIndia/index.html | 6103B | YES | OK | NEW |
+| LightOfIndia/index.html | 6078B | YES | OK | NEW |
 
 ### /LightOfIndia/Efi (1 files)
 
@@ -170,7 +170,7 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 | Living/Aboutx.html | 11843B | YES | OK | OLD |
 | Living/Copy | ?B | NO | OK | OLD |
 | of | ?B | NO | OK | OLD |
-| index.html | 10471B | YES | OK | NEW |
+| index.html | 8908B | YES | OK | NEW |
 | Living/Living_header.html | 2046B | YES | OK | OLD |
 | Living/Personal_Training.html | 12086B | YES | OK | OLD |
 | Living/Personal_Training1.html | 11863B | YES | OK | OLD |
@@ -372,12 +372,12 @@ Generated: Tue Jan 13 16:49:46 UTC 2026
 
 | File | Size | UTF-8 | Content | Design |
 |------|------|-------|---------|--------|
-| en/archive.html | 8056B | YES | OK | NEW |
-| en/index.html | 9527B | YES | OK | NEW |
-| en/living.html | 6982B | YES | OK | NEW |
-| en/personal.html | 5347B | YES | OK | NEW |
-| en/spiritual.html | 11594B | YES | OK | NEW |
-| en/travel.html | 8353B | YES | OK | NEW |
+| en/archive.html | 8021B | YES | OK | NEW |
+| en/index.html | 8168B | YES | OK | NEW |
+| en/living.html | 6964B | YES | OK | NEW |
+| en/personal.html | 5329B | YES | OK | NEW |
+| en/spiritual.html | 11569B | YES | OK | NEW |
+| en/travel.html | 8335B | YES | OK | NEW |
 
 ### /family (1 files)
 
