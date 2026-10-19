@@ -1,0 +1,12 @@
+שם: אנתוני דה מלו
+name_en: Anthony de Mello
+שנים: 1931-1987
+תפקיד: כומר ישועי הודי
+role_en: Indian Jesuit priest
+ויקיפדיה: https://he.wikipedia.org/wiki/אנתוני_דה_מלו
+wiki_en: https://en.wikipedia.org/wiki/Anthony_de_Mello
+תמונה: demello1.jpg
+סדר: 3
+ביוגרפיה: אנתוני דה מלו שילב מסורות רוחניות מזרחיות ומערביות. עבודתו מדגישה מודעות, התעוררות מאשליות ומציאת אושר דרך הבנה.
+bio_en: Anthony de Mello was an Indian Jesuit priest and psychotherapist known for his books on spirituality. His teachings blend Eastern and Western spiritual traditions: Christianity, Buddhism and Taoism.
+His work emphasizes awareness, awakening from the illusions that cause suffering, and finding happiness through understanding rather than acquisition.
