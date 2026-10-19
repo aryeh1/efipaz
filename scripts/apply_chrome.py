@@ -40,7 +40,7 @@ ROOT_ACTIVE = {"index": "home", "spiritual": "spiritual", "travel": "travel", "a
 HEADER_RE = re.compile(r"[ \t]*<header class=\"header\">.*?</header>\n?", re.S)
 FOOTER_RE = re.compile(r"[ \t]*<footer class=\"footer\">.*?</footer>\n?", re.S)
 NAV_SCRIPT_RE = re.compile(
-    r"[ \t]*<script>\s*(?:\(function \(\) \{.*?\}\)\(\);|document\.querySelector\('\.nav__toggle'\)\.addEventListener\('click', function\(\) \{\s*"
+    r"[ \t]*<script>\s*(?:\(function \(\) \{\s*var t = document\.querySelector\('\.nav__toggle'\);.*?\}\)\(\);|document\.querySelector\('\.nav__toggle'\)\.addEventListener\('click', function\(\) \{\s*"
     r"document\.querySelector\('\.nav__list'\)\.classList\.toggle\('is-open'\);\s*\}\);)\s*</script>\n?", re.S)
 SKIP_RE = re.compile(r"[ \t]*<a class=\"skip-link\" href=\"#main\">[^<]*</a>\n?")
 MAIN_OPEN_RE = re.compile(r"[ \t]*<main id=\"main\">\n?")

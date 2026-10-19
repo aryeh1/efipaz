@@ -223,7 +223,7 @@ def page(lang: str, depth: int, title: str, description: str, active: str, body:
          noindex: bool = False) -> str:
     """Complete HTML document with the shared chrome."""
     dir_attr = "rtl" if lang == "he" else "ltr"
-    return f"""<!DOCTYPE html>
+    doc = f"""<!DOCTYPE html>
 <html lang="{lang}" dir="{dir_attr}">
 <head>
 {head_html(lang, depth, title, description, canonical_path, alt_path, og_image, extra_head, noindex)}
@@ -233,13 +233,16 @@ def page(lang: str, depth: int, title: str, description: str, active: str, body:
 {header_html(lang, depth, active, alt_url)}
 
   <main id="main">
+
 {body}
+
   </main>
 
 {footer_html(lang, depth)}
 
-{extra_scripts}
-{NAV_SCRIPT}
+{chr(10).join(x for x in (extra_scripts, NAV_SCRIPT) if x)}
 </body>
 </html>
 """
+    import re as _re
+    return _re.sub(r"\n{3,}", "\n\n", doc).rstrip("\n") + "\n"
