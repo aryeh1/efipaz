@@ -388,6 +388,15 @@ def convert_to_pdf(src: Path) -> Path | None:
     return None
 
 
+def pdf_is_valid(pdf: Path) -> bool:
+    if not have("pdfinfo"):
+        return True
+    try:
+        return run(["pdfinfo", str(pdf)], timeout=60).returncode == 0
+    except Exception:  # noqa: BLE001
+        return True
+
+
 def pdf_cover(pdf: Path, cover: Path) -> bool:
     if cover.exists():
         return False
@@ -432,6 +441,9 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
         if stem_key in seen_stems:
             continue
         seen_stems.add(stem_key)
+        if not pdf_is_valid(pdf):
+            report("error", f"הקובץ {pdf.name} אינו PDF תקין ולא הוצג. אפשר לפתוח אותו במחשב, לשמור מחדש כ-PDF ולהעלות שוב.", rel(pdf))
+            continue
         meta = sidecar_info(pdf)
         category = pdf.parent.relative_to(folder).parts[0] if pdf.parent != folder else ""
         sig = file_sig(pdf)

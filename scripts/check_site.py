@@ -163,7 +163,7 @@ def check_pairs() -> None:
         sec_en = re.findall(r"<section[^>]*\bid=\"([^\"]+)\"", te)
         if sec_he != sec_en:
             problem(f"{name}: section ids differ he={sec_he} en={sec_en}")
-        ch, ce = th.count('class="card'), te.count('class="card')
+        ch, ce = len(re.findall(r'class="card[ "]', th)), len(re.findall(r'class="card[ "]', te))
         if ch != ce:
             problem(f"{name}: card count differs he={ch} en={ce}")
 
