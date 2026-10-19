@@ -1,39 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Art and Personal - Drawings and personal moments">
-  <title>Personal & Art | Efi Paz</title>
+  <meta name="description" content="Personal – drawings and family moments">
+  <title>Personal | Efi Paz</title>
+  <link rel="canonical" href="https://www.efipaz.com/en/personal.html">
+  <meta property="og:url" content="https://www.efipaz.com/en/personal.html">
+  <link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/personal.html">
+  <link rel="alternate" hreflang="he" href="https://www.efipaz.com/personal.html">
+  <meta property="og:title" content="Personal | Efi Paz">
+  <meta property="og:description" content="Personal – drawings and family moments">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Efi Paz">
+  <meta property="og:locale" content="en_US">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
   <link rel="icon" href="../favicon.ico" type="image/x-icon">
-  <style>
-    body { font-family: var(--font-english); direction: ltr; }
-    h1, h2, h3, h4, h5, h6 { font-family: var(--font-english); }
-  </style>
 </head>
 <body>
-
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="header">
     <div class="container header__inner">
-      <a href="index.html" class="header__logo">Efi Paz</a>
-      <nav class="nav">
-        <ul class="nav__list">
-          <li><a href="index.html" class="nav__link">Home</a></li>
-          <li><a href="spiritual.html" class="nav__link">Spirituality</a></li>
-          <li><a href="travel.html" class="nav__link">Travel</a></li>
-          <li><a href="personal.html" class="nav__link nav__link--active">Personal</a></li>
-          <li><a href="archive.html" class="nav__link">Archive</a></li>
-          <li><a href="living.html" class="nav__link">Living</a></li>
+      <a href="../en/index.html" class="header__logo">Efi Paz</a>
+      <nav class="nav" aria-label="Menu">
+        <ul class="nav__list" id="nav-list">
+          <li><a href="../en/index.html" class="nav__link">Home</a></li>
+          <li><a href="../en/spiritual.html" class="nav__link">Wisdom &amp; Awareness</a></li>
+          <li><a href="../en/travel.html" class="nav__link">Travel</a></li>
+          <li><a href="../en/archive.html" class="nav__link nav__link--active">Archive</a></li>
         </ul>
         <div class="lang-switch">
-          <a href="../personal.html">עב</a>
-          <a href="personal.html" class="active">EN</a>
+          <a href="../personal.html" lang="he" hreflang="he">עב</a>
+          <a href="#" class="active" aria-current="page">EN</a>
         </div>
-        <button class="nav__toggle" aria-label="Menu">
+        <button class="nav__toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-list">
           <span></span>
           <span></span>
           <span></span>
@@ -42,87 +45,104 @@
     </div>
   </header>
 
-  <div class="page-header">
-    <div class="container">
-      <h1>Personal & Art</h1>
-      <p class="page-header__subtitle">Artwork, drawings, and personal moments</p>
-    </div>
-  </div>
+  <main id="main">
 
-  <section id="drawings" class="section">
-    <div class="container">
-      <h2 class="mb-3">Drawings</h2>
-      <p class="mb-3">A collection of artwork and illustrations.</p>
-
-      <div class="gallery-categories">
-        <a href="../personal/drawings/Danielle/Danielle_index.html" class="gallery-category">
-          <img src="../personal/drawings/Danielle/Belle.jpg" alt="Danielle Drawings">
-          <div class="gallery-category__overlay">
-            <span class="gallery-category__title">Danielle Gallery</span>
-          </div>
-        </a>
-        <a href="../personal/drawings/parker.html" class="gallery-category">
-          <img src="../personal/drawings/Danielle/Belle.jpg" alt="Parker">
-          <div class="gallery-category__overlay">
-            <span class="gallery-category__title">Parker</span>
-          </div>
-        </a>
-        <a href="../personal/drawings/huxley.html" class="gallery-category">
-          <img src="../personal/drawings/Danielle/Belle.jpg" alt="Huxley">
-          <div class="gallery-category__overlay">
-            <span class="gallery-category__title">Huxley</span>
-          </div>
-        </a>
+    <div class="page-header">
+      <div class="container">
+        <h1>Personal</h1>
+        <p class="page-header__subtitle">Drawings and family moments</p>
       </div>
     </div>
-  </section>
 
-  <section id="family" class="section section--alt">
-    <div class="container">
-      <h2 class="mb-3">Family</h2>
-      <p class="mb-3">Personal and family moments.</p>
-
-      <div class="gallery-categories">
-        <a href="../personal/evyatar/Evyatar_index.html" class="gallery-category">
-          <img src="../travel/india/pictures/Children/Children/Alchi-025.jpg" alt="Evyatar">
-          <div class="gallery-category__overlay">
-            <span class="gallery-category__title">Evyatar</span>
+    <section id="drawings" class="section">
+      <div class="container">
+        <h2 class="mb-3">Drawings</h2>
+        <p class="mb-3">A collection of drawings and illustrations.</p>
+        <div class="gallery-categories">
+          <a href="../personal/drawings/Danielle/Danielle_index.html" class="gallery-category">
+            <img src="../personal/drawings/Danielle/tn_Belle.jpg" alt="" loading="lazy">
+            <div class="gallery-category__overlay"><span class="gallery-category__title">Danielle's gallery</span></div>
+          </a>
+          <a href="../personal/drawings/rampole.html" class="gallery-category">
+            <img src="../personal/drawings/rampole_files/davis_rumpole.gif" alt="" loading="lazy">
+            <div class="gallery-category__overlay"><span class="gallery-category__title">Rumpole</span></div>
+          </a>
+          <a href="../personal/drawings/watts-pic.html" class="gallery-category">
+            <img src="../personal/drawings/watts-pic_files/watts_brey.jpg" alt="" loading="lazy">
+            <div class="gallery-category__overlay"><span class="gallery-category__title">Alan Watts</span></div>
+          </a>
+        </div>
+        <div class="document-list mt-3">
+        <a href="../personal/drawings/huxley.html" class="document-item">
+          <div class="document-item__icon">WEB</div>
+          <div class="document-item__info">
+            <div class="document-item__title">Aldous Huxley</div>
+            <div class="document-item__meta">Drawing</div>
           </div>
         </a>
+        <a href="../personal/drawings/parker.html" class="document-item">
+          <div class="document-item__icon">WEB</div>
+          <div class="document-item__info">
+            <div class="document-item__title">Parker</div>
+            <div class="document-item__meta">Drawing</div>
+          </div>
+        </a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section id="family" class="section section--alt">
+      <div class="container">
+        <h2 class="mb-3">Family</h2>
+        <p class="mb-3">Personal and family moments.</p>
+        <div class="gallery-categories">
+          <a href="../personal/evyatar/Evyatar_index.html" class="gallery-category">
+            <img src="../personal/evyatar/evyamessi3.jpg" alt="" loading="lazy">
+            <div class="gallery-category__overlay"><span class="gallery-category__title">Evyatar</span></div>
+          </a>
+          <a href="family.html" class="gallery-category">
+            <img src="../travel/india/pictures/Children/Children/Alchi-025.jpg" alt="" loading="lazy">
+            <div class="gallery-category__overlay"><span class="gallery-category__title">The Rozani family</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <footer class="footer">
     <div class="container">
       <div class="footer__inner">
         <div class="footer__section">
-          <h4>Spirituality</h4>
+          <p class="footer__title">Wisdom &amp; Awareness</p>
           <ul class="footer__links">
-            <li><a href="spiritual.html#krishnamurti">Krishnamurti</a></li>
-            <li><a href="spiritual.html#watts">Alan Watts</a></li>
-            <li><a href="spiritual.html#demello">Anthony de Mello</a></li>
+            <li><a href="../en/spiritual.html#books">Books</a></li>
+            <li><a href="../en/spiritual.html#groups">Groups</a></li>
+            <li><a href="../en/spiritual.html#teachers">Teachers</a></li>
           </ul>
         </div>
         <div class="footer__section">
-          <h4>Travel</h4>
+          <p class="footer__title">Travel</p>
           <ul class="footer__links">
-            <li><a href="travel.html#india">Light of India</a></li>
-            <li><a href="travel.html#burma">Myanmar</a></li>
+            <li><a href="../en/travel.html#photography">Photography</a></li>
+            <li><a href="../en/travel.html#drawings">Drawings</a></li>
+            <li><a href="../en/travel.html#greyhair">India with Grey Hair</a></li>
           </ul>
         </div>
         <div class="footer__section">
-          <h4>More</h4>
+          <p class="footer__title">Archive</p>
           <ul class="footer__links">
-            <li><a href="living.html">Living with Money</a></li>
-            <li><a href="#drawings">Drawings</a></li>
-            <li><a href="archive.html">Archive</a></li>
+            <li><a href="../en/archive.html#living">Living with Money</a></li>
+            <li><a href="../en/archive.html#ethics">Ethics</a></li>
+            <li><a href="../en/archive.html#family">Family</a></li>
+            <li><a href="../en/archive.html#old-site">The old site</a></li>
           </ul>
         </div>
         <div class="footer__section">
-          <h4>Language</h4>
+          <p class="footer__title">More</p>
           <ul class="footer__links">
-            <li><a href="../index.html">Hebrew</a></li>
+            <li><a href="../en/personal.html">Personal</a></li>
+            <li><a href="../index.html">עברית</a></li>
           </ul>
         </div>
       </div>
@@ -133,10 +153,15 @@
   </footer>
 
   <script>
-    document.querySelector('.nav__toggle').addEventListener('click', function() {
-      document.querySelector('.nav__list').classList.toggle('is-open');
-    });
+    (function () {
+      var t = document.querySelector('.nav__toggle');
+      var l = document.querySelector('.nav__list');
+      if (!t || !l) return;
+      t.addEventListener('click', function () {
+        var open = l.classList.toggle('is-open');
+        t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    })();
   </script>
-
 </body>
 </html>
