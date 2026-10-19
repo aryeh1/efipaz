@@ -372,7 +372,13 @@ a:hover {
   transform: scale(1.02);
 }
 
-/* Book covers - don't crop */
+/* Book covers - don't crop; the cover sits centred in a full-width band */
+.card--book .card__image {
+  width: 100%;
+  aspect-ratio: auto;
+  height: 280px;
+}
+
 .card--book .card__image img {
   object-fit: contain;
   background-color: var(--color-bg);
@@ -1365,7 +1371,7 @@ blockquote, .quote {
 }
 .lightbox__open:hover { opacity: 1; color: var(--color-bg); }
 
-/* viewer (pdf.js) */
+/* viewer (pdf.js): one bar — back · title · [page counter, zoom, download, new tab] */
 .viewer { display: flex; flex-direction: column; min-height: 100vh; }
 .viewer__bar {
   position: sticky; top: 0; z-index: 50;
@@ -1373,10 +1379,18 @@ blockquote, .quote {
   padding: var(--space-xs) var(--space-sm);
   background: var(--color-bg); border-bottom: 1px solid var(--color-border);
 }
-.viewer__title { flex: 1 1 200px; font-size: 0.95rem; font-weight: 500; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.viewer__bar .btn { padding: 4px 10px; font-size: 0.85rem; }
-.viewer__page { font-size: 0.85rem; color: var(--color-text-light); min-width: 70px; text-align: center; }
-.viewer__pages { flex: 1; padding: var(--space-sm); background: var(--color-bg-alt); }
+.viewer__title { flex: 1 1 160px; min-width: 0; font-size: 1rem; font-weight: 500; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.viewer__tools { display: flex; align-items: center; gap: var(--space-xs); }
+.viewer__bar .btn { padding: 6px 12px; min-height: 40px; display: inline-flex; align-items: center; font-size: 0.95rem; }
+.viewer__bar #zoom-in, .viewer__bar #zoom-out { min-width: 40px; justify-content: center; font-size: 1.2rem; }
+.viewer__back::before { content: '\2039'; margin-inline-end: 6px; font-size: 1.2em; line-height: 1; }
+[dir="ltr"] .viewer__back::before { content: '\2039'; }
+.viewer__page { font-size: 0.9rem; color: var(--color-text-light); min-width: 64px; text-align: center; direction: ltr; unicode-bidi: isolate; }
+.viewer__pages { flex: 1; padding: var(--space-sm); background: var(--color-bg-alt); overflow-x: auto; }
+@media (max-width: 600px) {
+  .viewer__tools { flex-basis: 100%; justify-content: space-between; }
+  .viewer__bar #open { display: none; }
+}
 .viewer__canvas { display: block; margin: 0 auto var(--space-sm); max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(26, 26, 26, 0.15); background: #fff; }
 .viewer__fallback { width: 100%; height: calc(100vh - 60px); border: none; }
 .viewer__msg { padding: var(--space-lg); text-align: center; color: var(--color-text-light); }
@@ -1447,5 +1461,28 @@ blockquote, .quote {
 main a, .document-item__title { overflow-wrap: anywhere; }
 
 .footer__links a { display: inline-block; padding: 6px 0; }
-.viewer__bar[data-empty="1"] .btn, .viewer__bar[data-empty="1"] .viewer__page { display: none; }
-@media (max-width: 480px) { .viewer__bar #open { display: none; } }
+.viewer__bar[data-empty="1"] .viewer__tools { display: none; }
+
+/* עוגנים פנימיים נעצרים מתחת לכותרת הדביקה, לא מאחוריה */
+[id] { scroll-margin-top: 5.5rem; }
+
+/* עמודי מדור: תת-הכותרת היא קישורים לחלקי העמוד (העמודים ארוכים, במיוחד בטלפון) */
+.page-header__links { color: var(--color-text-light); font-size: 1rem; }
+.page-header__links a { display: inline-block; padding: 6px 2px; color: var(--color-text-light); border-bottom: 1px solid var(--color-border); }
+.page-header__links a:hover, .page-header__links a:focus { color: var(--color-accent); border-color: var(--color-accent); }
+
+/* מתג שפה: רק השפה האחרת מוצגת (כפתור אחד ברור במקום שניים) */
+.lang-switch a.active { display: none; }
+
+/* טלפון: פחות אוויר ריק מעל התוכן, המבורגר שרואים, שהופך ל-X כשהתפריט פתוח */
+@media (max-width: 768px) {
+  .section { padding: var(--space-lg) 0; }
+  .page-header { padding: var(--space-lg) 0; }
+  .nav__toggle span { width: 24px; height: 2px; margin: 5px auto; transition: transform var(--transition), opacity var(--transition); }
+  .nav__toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav__toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+}
+
+/* קישורי "לקריאה · להורדה" ברשימות מסמכים: שטח מגע גדול בלי שינוי מראה */
+.document-item__meta a, .card__actions a, .video-item__meta a, .audio-item a { display: inline-block; padding: 6px 2px; margin: -6px 0; }
+.document-item__title a, .card__title a, .person-card__name a { display: inline-block; padding: 5px 0; margin: -5px 0; }

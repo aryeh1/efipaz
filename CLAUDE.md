@@ -32,7 +32,7 @@ efipaz/
 ├── teachers/<id>/          # הוגה: info.txt + portrait.jpg + קבצים → index.html + index.en.html אוטומטיים
 ├── recordings/manifest.json  # רשימת ההקלטות מ-archive.org (אוטומטי)
 ├── living/ personal/ business/   # עמודי תוכן ישנים שהומרו (טקסט מקורי של אפי)
-├── archive/                # ארכיון: courses/, family/, misc/, ו-old-site/ (האתר הישן, cp1255, לא נוגעים)
+├── archive/                # ארכיון: courses/, family/, misc/, ו-old-site/ (האתר הישן כפי שהיה, UTF-8, לא נוגעים בתוכן)
 ├── assets/js/gallery.js viewer.js   assets/data/content-report.json
 ├── scripts/                # build_content.py, sitechrome.py, apply_chrome.py, check_site.py, validate-all.sh
 └── .github/workflows/auto-process-content.yml
@@ -83,7 +83,7 @@ efipaz/
 
 | חי (נערך, מתוחזק) | ארכיון (לא נוגעים) |
 |---|---|
-| עמודי השורש, `en/`, `books/`, `transcripts/`, `travel/`, `teachers/`, `living/`, `personal/`, `business/`, `assets/`, `scripts/` | `archive/` כולו, ובמיוחד `archive/old-site/` (האתר הישן ב-cp1255 כפי שהיה) |
+| עמודי השורש, `en/`, `books/`, `transcripts/`, `travel/`, `teachers/`, `living/`, `personal/`, `business/`, `assets/`, `scripts/` | `archive/` כולו, ובמיוחד `archive/old-site/` (האתר הישן כפי שהיה) |
 
 - `archive/old-site/` נגיש מ-`archive.html#old-site`. אין להמיר קידוד, אין "לשפר", אין למחוק.
 - קישורים מעמודים חיים אל `archive/old-site/` מותרים רק מ-`archive.html` ו-`ethics.html` (ה-checker אוכף).
@@ -124,8 +124,10 @@ python3 scripts/build_content.py   # ריצה שנייה: חייבת לדווח 
    **לעולם לא לשכתב טקסט של אפי. ממירים, לא "משפרים".**
 2. **פברואר 2026:** אפי העלה גלריה ללא `info.txt` והיא לא נוצרה; עריכות HTML ידניות שלו שברו את `travel.html`.
    מכאן: אפס דרישות נסתרות, אפס עריכת HTML לאפי.
-3. **קידוד:** האתר הישן ב-Windows-1255. קבצים חיים הם UTF-8 עם `<meta charset="UTF-8">`. אין להריץ המרה עיוורת
-   (קובץ UTF-8 שמצהיר cp1255 יתקלקל).
+3. **קידוד:** GitHub Pages שולח `Content-Type: text/html; charset=utf-8` לכל עמוד, וכותרת HTTP גוברת על `<meta charset>`.
+   לכן קובץ ב-Windows-1255 מוצג כג'יבריש באתר החי – כך היה האתר הישן שנים. באוקטובר 2026 כל קבצי הטקסט ב-`archive/old-site/`
+   הומרו פעם אחת ל-UTF-8 (המרה נאמנה, בלי לשנות טקסט; קבצי UTF-16 של Word הומרו גם הם). **כל קובץ HTML באתר חייב להיות UTF-8**
+   (`check_site.py` אוכף גם על הארכיון). אין להריץ המרה עיוורת על קובץ שכבר UTF-8.
 4. **120 קבצי jpg** בגלריות הודו/בורמה הם נתונים פגומים מהמקור. המנוע מסנן אותם ומדווח; לא "לתקן" אותם.
 
 ---

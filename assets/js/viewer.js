@@ -16,8 +16,8 @@
   var base = window.VIEWER_BASE || '';
   var he = (window.VIEWER_LANG || 'he') === 'he';
   var T = he
-    ? { bad: 'לא נמצא קובץ להצגה.', fail: 'לא הצלחתי להציג את הקובץ כאן. אפשר להוריד אותו או לפתוח בחלון חדש.', page: 'עמוד' }
-    : { bad: 'No file to show.', fail: 'The file could not be displayed here. You can download it or open it in a new tab.', page: 'Page' };
+    ? { bad: 'לא נמצא קובץ להצגה.', fail: 'לא הצלחתי להציג את הקובץ כאן. אפשר להוריד אותו או לפתוח בחלון חדש.', page: 'עמוד', loading: 'טוען…' }
+    : { bad: 'No file to show.', fail: 'The file could not be displayed here. You can download it or open it in a new tab.', page: 'Page', loading: 'Loading…' };
 
   var pagesEl = document.getElementById('pages');
   var titleEl = document.getElementById('title');
@@ -53,7 +53,11 @@
     (new Function('u', 'return import(u)'))(CDN + 'build/pdf.min.mjs').then(function (mod) {
       pdfjsLib = mod;
       pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'build/pdf.worker.min.mjs';
-      return pdfjsLib.getDocument({ url: url, cMapUrl: CDN + 'cmaps/', cMapPacked: true, standardFontDataUrl: CDN + 'standard_fonts/', disableFontFace: true }).promise;
+      var task = pdfjsLib.getDocument({ url: url, cMapUrl: CDN + 'cmaps/', cMapPacked: true, standardFontDataUrl: CDN + 'standard_fonts/', disableFontFace: true });
+      task.onProgress = function (p) {  // big books on a slow phone: show that something is happening
+        if (p.total) { var m = pagesEl.querySelector('.viewer__msg'); if (m) m.textContent = T.loading + ' ' + Math.min(99, Math.round(p.loaded / p.total * 100)) + '%'; }
+      };
+      return task.promise;
     }).then(render, fallback);
   } catch (e) { fallback(); }
 

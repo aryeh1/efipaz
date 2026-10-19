@@ -42,6 +42,12 @@ FOOTER_RE = re.compile(r"[ \t]*<footer class=\"footer\">.*?</footer>\n?", re.S)
 NAV_SCRIPT_RE = re.compile(
     r"[ \t]*<script>\s*(?:\(function \(\) \{\s*var t = document\.querySelector\('\.nav__toggle'\);.*?\}\)\(\);|document\.querySelector\('\.nav__toggle'\)\.addEventListener\('click', function\(\) \{\s*"
     r"document\.querySelector\('\.nav__list'\)\.classList\.toggle\('is-open'\);\s*\}\);)\s*</script>\n?", re.S)
+# the old inline menu handler embedded in a larger <script> (India/Myanmar/business pages): a second handler
+# would toggle the menu back shut on every tap
+OLD_HANDLER_RE = re.compile(
+    r"[ \t]*// Mobile (?:menu|navigation toggle)\n[ \t]*document\.querySelector\('\.nav__toggle'\)\.addEventListener\('click', function\(\) \{\s*"
+    r"document\.querySelector\('\.nav__list'\)\.classList\.toggle\('is-open'\);\s*\}\);\n(?:[ \t]*\n)?")
+EMPTY_SCRIPT_RE = re.compile(r"[ \t]*<script>\s*</script>\n?")
 SKIP_RE = re.compile(r"[ \t]*<a class=\"skip-link\" href=\"#main\">[^<]*</a>\n?")
 MAIN_OPEN_RE = re.compile(r"[ \t]*<main id=\"main\"(?P<attrs>[^>]*)>\n?")
 MAIN_CLOSE_RE = re.compile(r"[ \t]*</main>\n?")
@@ -76,7 +82,14 @@ def classify(path: Path):
 def apply(path: Path, check: bool = False) -> bool:
     text = path.read_text(encoding="utf-8")
     if "<header class=\"header\">" not in text or "<footer class=\"footer\">" not in text:
-        return False
+        # pages without the shared chrome (viewer.html) still get versioned asset links
+        depth = len(path.relative_to(ROOT).parts) - 1
+        new = version_assets(text, depth)
+        if new == text:
+            return False
+        if not check:
+            path.write_text(new, encoding="utf-8", newline="\n")
+        return True
     lang, depth, active, alt = classify(path)
     new = text
     # <html> attributes
@@ -85,6 +98,11 @@ def apply(path: Path, check: bool = False) -> bool:
     new = HEADER_RE.sub(lambda m: chrome.header_html(lang, depth, active, alt) + "\n", new, count=1)
     new = FOOTER_RE.sub(lambda m: chrome.footer_html(lang, depth) + "\n", new, count=1)
     new = NAV_SCRIPT_RE.sub("", new)
+    new = OLD_HANDLER_RE.sub("", new)
+    new = EMPTY_SCRIPT_RE.sub("", new)
+    # legacy photo pages: the shared lightbox (gallery.js) unless the page carries its own
+    if 'class="gallery__item"' in new and "assets/js/gallery.js" not in new and 'id="lightbox"' not in new:
+        new = new.replace("</body>", f'  <script src="{chrome.asset_url(depth, "assets/js/gallery.js")}"></script>\n</body>', 1)
     new = SKIP_RE.sub("", new)
     m_main = MAIN_OPEN_RE.search(new)
     main_attrs = m_main.group("attrs") if m_main else ""
@@ -99,6 +117,8 @@ def apply(path: Path, check: bool = False) -> bool:
     # drop the inline English font overrides (now in style.css) and stray Playfair font loads
     new = re.sub(r"\s*<style>\s*body \{ font-family: var\(--font-english\); direction: ltr; \}\s*h1, h2, h3, h4, h5, h6 \{ font-family: var\(--font-english\); \}\s*</style>", "", new)
     new = new.replace("&family=Playfair+Display:wght@400;600;700", "").replace(";600;700&", ";600&")
+    # versioned asset references (style.css, assets/js/*.js) so browsers never use a stale cached copy
+    new = version_assets(new, depth)
     # collapse runs of blank lines (keeps the script idempotent), trailing blank lines
     new = re.sub(r"\n{3,}", "\n\n", new)
     new = new.rstrip("\n") + "\n"
@@ -109,14 +129,20 @@ def apply(path: Path, check: bool = False) -> bool:
     return True
 
 
+ASSET_RE = re.compile(r'((?:href|src)=")(?:\.\./)*(style\.css|assets/js/[A-Za-z0-9_-]+\.js)(?:\?v=[0-9a-f]+)?"')
+
+
+def version_assets(text: str, depth: int) -> str:
+    return ASSET_RE.sub(lambda m: m.group(1) + chrome.asset_url(depth, m.group(2)) + '"', text)
+
+
 def default_targets() -> list[Path]:
     out: list[Path] = []
     for pattern in ("*.html", "en/*.html", "living/*.html", "living/Process/*.html", "living/Affluenza/*.html",
                     "personal/*.html", "personal/*/*.html", "personal/*/*/*.html", "business/*.html",
                     "teachers/*/*.html", "travel/india/*.html", "travel/myanmar/*.html", "travel/india/texts/*.html"):
         out += sorted(ROOT.glob(pattern))
-    skip = {"viewer.html"}
-    return [p for p in out if p.name not in skip and "old-site" not in p.parts]
+    return [p for p in out if "old-site" not in p.parts]
 
 
 def main(argv: list[str]) -> int:

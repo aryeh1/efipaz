@@ -803,7 +803,7 @@ def gallery_page(g: dict, lang: str) -> str:
     og = g["cover_thumb"] or g["cover"]
     return chrome.page(lang, depth, title, desc or count, "travel", body,
                        canonical_path=url(canonical), alt_path=url(alt), alt_url=alt_url, og_image=url(og) if og else None,
-                       extra_scripts=f'  <script src="{rp}assets/js/gallery.js"></script>')
+                       extra_scripts=f'  <script src="{chrome.asset_url(depth, "assets/js/gallery.js")}"></script>')
 
 
 def gallery_card(g: dict, lang: str, depth: int) -> str:
@@ -1080,7 +1080,7 @@ def teacher_page(t: dict, lang: str) -> str:
     return chrome.page(lang, depth, name, first_paragraph(bio) or name, "spiritual", body,
                        canonical_path=url(canonical), alt_path=url(alt), alt_url=alt_url,
                        og_image=url(t["portrait"]) if t["portrait"] else None,
-                       extra_scripts=f'  <script src="{rp}assets/js/gallery.js"></script>' if photos else "")
+                       extra_scripts=f'  <script src="{chrome.asset_url(depth, "assets/js/gallery.js")}"></script>' if photos else "")
 
 
 def teacher_card(t: dict, lang: str, depth: int) -> str:
