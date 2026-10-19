@@ -195,12 +195,31 @@ def check_case_collisions() -> None:
         seen[k] = line
 
 
+def check_archive_encoding() -> None:
+    """GitHub Pages serves every HTML file as charset=utf-8 (the HTTP header beats <meta charset>), so a
+    Windows-1255 or UTF-16 file in the archive shows as gibberish. Every text file must be UTF-8."""
+    for p in (ROOT / "archive").rglob("*"):
+        if p.suffix.lower() not in (".html", ".htm", ".js", ".css", ".txt"):
+            continue
+        raw = p.read_bytes()
+        rel = p.relative_to(ROOT).as_posix()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            problem(f"{rel}: not UTF-8 (would show as gibberish on GitHub Pages)")
+            continue
+        m = re.search(r"charset=[\"']?([A-Za-z0-9_-]+)", text, re.I)
+        if m and m.group(1).lower() != "utf-8" and any(ord(c) > 127 for c in text):
+            problem(f"{rel}: declares charset={m.group(1)} but the file is UTF-8")
+
+
 def main(argv: list[str]) -> int:
     quiet = "--quiet" in argv
     cache: dict[Path, set[str]] = {}
     pages = live_pages()
     for p in pages:
         check_page(p, cache)
+    check_archive_encoding()
     check_manifests()
     check_pairs()
     check_css()

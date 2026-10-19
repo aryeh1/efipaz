@@ -12,6 +12,17 @@ from __future__ import annotations
 import html
 
 SITE_URL = "https://www.efipaz.com"
+ROOT = __import__("pathlib").Path(__file__).resolve().parent.parent
+_ASSET_HASH: dict[str, str] = {}
+
+
+def asset_url(depth: int, path: str) -> str:
+    """Site-relative asset path with a content hash, so browsers never show a stale CSS/JS after a deploy."""
+    if path not in _ASSET_HASH:
+        import hashlib
+        f = ROOT / path
+        _ASSET_HASH[path] = hashlib.md5(f.read_bytes()).hexdigest()[:8] if f.exists() else "0"
+    return f"{root_prefix(depth)}{path}?v={_ASSET_HASH[path]}"
 
 NAV = {
     "he": [
@@ -210,7 +221,7 @@ def head_html(lang: str, depth: int, title: str, description: str,
         '  <link rel="preconnect" href="https://fonts.googleapis.com">',
         '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
         f'  <link href="{FONTS_URL}" rel="stylesheet">',
-        f'  <link rel="stylesheet" href="{rp}style.css">',
+        f'  <link rel="stylesheet" href="{asset_url(depth, "style.css")}">',
         f'  <link rel="icon" href="{rp}favicon.ico" type="image/x-icon">',
     ]
     if extra:

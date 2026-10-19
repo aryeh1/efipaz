@@ -8,19 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=28a4da6f">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body class="viewer">
   <div class="viewer__bar">
-    <a href="index.html" class="header__logo">אפי פז</a>
+    <button type="button" class="btn viewer__back" id="back" onclick="history.length > 1 ? history.back() : location.assign('spiritual.html')">חזרה</button>
     <p class="viewer__title" id="title">קריאה</p>
-    <span class="viewer__page" id="page"></span>
-    <button type="button" class="btn" id="zoom-out" aria-label="הקטנה">−</button>
-    <button type="button" class="btn" id="zoom-in" aria-label="הגדלה">+</button>
-    <a class="btn" id="download" href="#" download>להורדה</a>
-    <a class="btn" id="open" href="#" target="_blank" rel="noopener">חלון חדש</a>
-    <button type="button" class="btn" id="back" onclick="history.length > 1 ? history.back() : location.assign('spiritual.html')">חזרה</button>
+    <div class="viewer__tools">
+      <span class="viewer__page" id="page" aria-live="polite"></span>
+      <button type="button" class="btn" id="zoom-out" aria-label="הקטנה">−</button>
+      <button type="button" class="btn" id="zoom-in" aria-label="הגדלה">+</button>
+      <a class="btn" id="download" href="#" download>להורדה</a>
+      <a class="btn" id="open" href="#" target="_blank" rel="noopener">חלון חדש</a>
+    </div>
   </div>
   <div class="viewer__pages" id="pages"><p class="viewer__msg">טוען…</p></div>
 
@@ -28,6 +29,6 @@
     // Shared viewer logic. The English copy (en/viewer.html) sets window.VIEWER_BASE = '../'.
     window.VIEWER_LANG = 'he';
   </script>
-  <script src="assets/js/viewer.js"></script>
+  <script src="assets/js/viewer.js?v=8d976d8e"></script>
 </body>
 </html>
