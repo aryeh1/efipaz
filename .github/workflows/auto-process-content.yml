@@ -20,13 +20,23 @@ on:
       - 'travel/**'
       - 'teachers/**'
       - '*.pdf'
+      - '*.PDF'
       - '*.doc'
       - '*.docx'
+      - '*.DOC'
+      - '*.DOCX'
       - '*.jpg'
+      - '*.JPG'
       - '*.jpeg'
+      - '*.JPEG'
       - '*.png'
+      - '*.PNG'
       - '*.heic'
+      - '*.HEIC'
       - '*.mp4'
+      - '*.MP4'
+      - '*.mov'
+      - '*.MOV'
       - 'scripts/build_content.py'
       - 'scripts/sitechrome.py'
   schedule:
@@ -74,6 +84,7 @@ jobs:
           git commit -m "Auto-process: update site content"
           # Someone (Efi) may have pushed again while we were building.
           for i in 1 2 3; do
+            git rebase --abort 2>/dev/null || true
             git pull --rebase origin "${GITHUB_REF_NAME}" && git push && exit 0
             echo "push failed, retrying ($i)"; sleep 10
           done

@@ -13,6 +13,7 @@
   var items = [];      // [{src, type: 'image'|'video', alt}]
   var index = 0;
   var box = null;
+  var opener = null;
   var touchStartX = 0;
   var rtl = (document.documentElement.getAttribute('dir') || 'rtl') === 'rtl';
   var he = (document.documentElement.lang || 'he') === 'he';
@@ -26,6 +27,7 @@
     box.className = 'lightbox';
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-label', he ? 'תצוגת תמונה' : 'Image viewer');
     box.innerHTML =
       '<div class="lightbox__content">' +
       '  <img class="lightbox__img" src="" alt="">' +
@@ -59,6 +61,7 @@
 
   function open(list, i) {
     create();
+    opener = document.activeElement;
     items = list;
     index = i;
     show();
@@ -71,6 +74,8 @@
     if (!box) return;
     box.classList.remove('is-active');
     document.body.style.overflow = '';
+    if (opener && opener.focus) { opener.focus(); }
+    opener = null;
     var v = box.querySelector('.lightbox__video');
     v.pause();
     v.removeAttribute('src');
@@ -115,6 +120,14 @@
 
   function onKey(e) {
     if (!box || !box.classList.contains('is-active')) return;
+    if (e.key === 'Tab') {
+      var f = box.querySelectorAll('button:not([hidden]), a[href], video:not([hidden])');
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return;
+    }
     if (e.key === 'Escape') close();
     else if (e.key === 'ArrowLeft') { rtl ? next() : prev(); }
     else if (e.key === 'ArrowRight') { rtl ? prev() : next(); }

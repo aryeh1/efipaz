@@ -1437,3 +1437,8 @@ blockquote, .quote {
 .admin__list li { padding: var(--space-xs) 0; border-bottom: 1px solid var(--color-border); }
 .admin__list li a { border: none; }
 .admin__note { font-size: 1rem; color: var(--color-text-light); }
+
+/* יעדי מגע בגודל מספק (44px) */
+.nav__toggle { min-width: 44px; min-height: 44px; }
+.lang-switch a { min-height: 32px; display: inline-flex; align-items: center; }
+@media (max-width: 768px) { .lang-switch a { min-height: 44px; padding: 4px 12px; } }

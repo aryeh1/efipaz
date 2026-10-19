@@ -140,7 +140,8 @@ def footer_html(lang: str, depth: int) -> str:
     cols = []
     for title, links in FOOTER[lang]:
         lis = "\n".join(
-            f'            <li><a href="{lr}{href}">{esc(label)}</a></li>' for href, label in links
+            f'            <li><a href="{(root_prefix(depth) + href[3:]) if href.startswith("../") else lr + href}">{esc(label)}</a></li>'
+            for href, label in links
         )
         cols.append(f"""        <div class="footer__section">
           <p class="footer__title">{esc(title)}</p>

@@ -48,7 +48,7 @@ from sitechrome import esc  # noqa: E402
 
 try:
     from PIL import Image, ImageOps
-    Image.MAX_IMAGE_PIXELS = None
+    Image.MAX_IMAGE_PIXELS = 120_000_000  # 120 MP: phone panoramas pass, decompression bombs do not
 except ImportError:  # pragma: no cover
     Image = None
 
@@ -74,6 +74,7 @@ ARCHIVE_ORG_URL = chrome.SITE_URL  # for report links only
 
 DRY_RUN = False
 NO_NETWORK = False
+KNOWN_CORRUPT: set[str] = set()  # corrupt image paths already reported in a previous run
 CHANGED: list[str] = []          # files written/moved/deleted
 REPORT: list[dict] = []          # {"level": "ok|warn|error", "he": str, "path": str}
 
@@ -189,8 +190,13 @@ def parse_info(text: str) -> dict:
                    re.split(r"\s*:", ln, maxsplit=1)[0].strip().lower() in ALIAS_TO_KEY for ln in lines)
     if not has_keys:
         vals = [ln.strip() for ln in lines if ln.strip()]
-        for key, val in zip(POSITIONAL, vals):
-            info[key] = val
+        # A short key-less file is "title / description". Anything longer is prose
+        # (a transcript, notes), not metadata: ignore it rather than turn it into a title.
+        if 0 < len(vals) <= 2 and all(len(v) <= 120 for v in vals):
+            for key, val in zip(POSITIONAL[:2], vals):
+                info[key] = val
+        elif vals:
+            info["_ignored"] = "1"
         return info
     current = None
     for ln in lines:
@@ -211,7 +217,11 @@ def load_info(folder: Path, name: str = "info.txt") -> dict:
     p = folder / name
     if p.exists():
         try:
-            return parse_info(read_text_tolerant(p))
+            info = parse_info(read_text_tolerant(p))
+            if info.get("_ignored"):
+                report("warn", f"הקובץ {rel(p)} נראה כטקסט חופשי ולא כקובץ פרטים (שורות 'שם: …' / 'כותרת: …'), ולכן לא השתמשתי בו", rel(p))
+                return {}
+            return info
         except Exception as e:  # noqa: BLE001
             report("warn", f"לא הצלחתי לקרוא את {rel(p)}: {e}", rel(p))
     pj = folder / "info.json"
@@ -230,7 +240,11 @@ def sidecar_info(file: Path) -> dict:
     p = file.with_suffix(".txt")
     if p.exists() and p != file:
         try:
-            return parse_info(read_text_tolerant(p))
+            info = parse_info(read_text_tolerant(p))
+            if info.get("_ignored"):
+                report("warn", f"הקובץ {rel(p)} נראה כטקסט חופשי ולא כקובץ כותרת (שורות 'כותרת: …' / 'תיאור: …'), ולכן לא השתמשתי בו", rel(p))
+                return {}
+            return info
         except Exception as e:  # noqa: BLE001
             report("warn", f"לא הצלחתי לקרוא את {rel(p)}: {e}", rel(p))
     return {}
@@ -275,6 +289,7 @@ def inject(page: Path, key: str, html: str) -> bool:
     start = f"<!-- auto:{key} -->"
     end = f"<!-- /auto:{key} -->"
     if start not in text or end not in text:
+        report("error", f"בעמוד {rel(page)} חסר הסימן <!-- auto:{key} --> ולכן התוכן החדש לא הוכנס אליו (לתקן את העמוד)", rel(page))
         return False
     pre, rest = text.split(start, 1)
     _, post = rest.split(end, 1)
@@ -284,9 +299,18 @@ def inject(page: Path, key: str, html: str) -> bool:
 
 # ----------------------------------------------------------------------------- images
 
+def thumb_name(src: Path, base: Path) -> str:
+    """Stable thumbnail file name: relative path (folders joined by __) + content signature."""
+    relp = src.relative_to(base).as_posix()
+    stem = re.sub(r"\.[A-Za-z0-9]+$", "", relp.replace("/", "__"))
+    stem = re.sub(r"[^\w.-]+", "_", stem, flags=re.UNICODE)[:80]
+    return f"{stem}.{file_sig(src)[:6]}.jpg"
+
+
 def make_thumb(src: Path, dst: Path, max_px: int = THUMB_MAX) -> bool:
-    """Create/refresh a JPEG thumbnail. Returns True if written."""
-    if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime and dst.stat().st_size > 0:
+    """Create a JPEG thumbnail if missing. Returns True if written (git mtimes are meaningless,
+    so the file name carries the content signature instead, see thumb_name())."""
+    if dst.exists() and dst.stat().st_size > 0:
         return False
     if DRY_RUN:
         return True
@@ -296,8 +320,13 @@ def make_thumb(src: Path, dst: Path, max_px: int = THUMB_MAX) -> bool:
             im.thumbnail((max_px, max_px), Image.LANCZOS)
             if im.mode not in ("RGB", "L"):
                 im = im.convert("RGB")
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            im.save(dst, "JPEG", quality=THUMB_QUALITY, optimize=True, progressive=True)
+            buf = io.BytesIO()
+            im.save(buf, "JPEG", quality=THUMB_QUALITY, optimize=True, progressive=True)
+        data = buf.getvalue()
+        if dst.exists() and dst.read_bytes() == data:
+            return False
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_bytes(data)
         CHANGED.append(rel(dst))
         return True
     except Exception as e:  # noqa: BLE001
@@ -351,7 +380,7 @@ def convert_heic(src: Path) -> Path | None:
 
 
 def video_poster(src: Path, dst: Path) -> bool:
-    if dst.exists():
+    if dst.exists() and dst.stat().st_size > 0:
         return False
     if DRY_RUN or not have("ffmpeg"):
         return False
@@ -421,6 +450,13 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
     """Collect PDFs (converting other formats) in folder and one level of category subfolders."""
     items: list[dict] = []
     seen_stems: set[str] = set()
+    previous_sources: dict[str, str] = {}
+    mf = folder / "manifest.json"
+    if mf.exists():
+        try:
+            previous_sources = {i["path"]: i.get("source_sig") for i in json.loads(mf.read_text(encoding="utf-8")).get("items", []) if i.get("source_sig")}
+        except Exception:  # noqa: BLE001
+            previous_sources = {}
     files = sorted(p for p in folder.rglob("*") if p.is_file() and covers_dir not in p.parents
                    and not p.name.startswith(".") and len(p.relative_to(folder).parts) <= 3)
     # PDFs first, so a converted PDF wins over its source
@@ -432,6 +468,17 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
             pdf = p
         elif ext in DOC_CONVERT_EXT:
             if stem_key in seen_stems:
+                # a PDF with this name already exists: reconvert only if the source changed
+                prev = previous_sources.get(rel(p.with_suffix(".pdf")))
+                if prev and prev != file_sig(p) and not DRY_RUN:
+                    p.with_suffix(".pdf").unlink(missing_ok=True)
+                    report("ok", f"הקובץ {p.name} הוחלף — ה-PDF נוצר מחדש", rel(p))
+                    pdf = convert_to_pdf(p)
+                    if pdf:
+                        for it in items:
+                            if it["path"] == rel(pdf):
+                                it["source_sig"] = file_sig(p)
+                                it["cover"] = None
                 continue
             pdf = convert_to_pdf(p)
             if not pdf:
@@ -449,7 +496,11 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
         sig = file_sig(pdf)
         cover = covers_dir / f"{sig}.jpg"
         pdf_cover(pdf, cover)
+        source = next((pdf.with_suffix(e) for e in (".docx", ".doc", ".odt", ".rtf", ".mht", ".mhtml") if pdf.with_suffix(e).exists()), None)
+        sidecar = pdf.with_suffix(".txt")
         items.append({
+            "sidecar": rel(sidecar) if sidecar.exists() else None,
+            "source_sig": file_sig(source) if source else None,
             "title": meta.get("title") or clean_name(pdf.stem),
             "title_en": meta.get("title_en") or "",
             "description": meta.get("description") or "",
@@ -460,6 +511,13 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
             "cover": rel(cover) if cover.exists() else None,
             "order": meta.get("order") or "",
         })
+    for it in items:
+        if it["cover"] is None and not DRY_RUN:
+            pdf = ROOT / it["path"]
+            if pdf.exists():
+                cover = covers_dir / f"{file_sig(pdf)}.jpg"
+                pdf_cover(pdf, cover)
+                it["cover"] = rel(cover) if cover.exists() else None
     # orphan covers
     used = {Path(i["cover"]).name for i in items if i["cover"]}
     if covers_dir.exists():
@@ -476,7 +534,7 @@ def scan_documents(folder: Path, covers_dir: Path) -> list[dict]:
     return items
 
 
-def book_card(item: dict, lang: str, depth: int) -> str:
+def book_card(item: dict, lang: str, depth: int, h: str = "h3") -> str:
     rp = chrome.root_prefix(depth)
     title = (item["title_en"] if lang == "en" and item["title_en"] else item["title"])
     desc = (item["description_en"] if lang == "en" and item["description_en"] else
@@ -495,7 +553,7 @@ def book_card(item: dict, lang: str, depth: int) -> str:
     desc_html = f'        <p class="card__text">{esc(desc)}</p>\n' if desc else ""
     return f"""    <div class="{cls}" lang="{'he' if not (lang == 'en' and item['title_en']) else 'en'}">
 {cover}      <div class="card__content">
-        <h3 class="card__title"><a href="{viewer}">{esc(title)}</a></h3>
+        <{h} class="card__title"><a href="{viewer}">{esc(title)}</a></{h}>
 {desc_html}        <p class="card__actions">
           <a class="card__link" href="{viewer}">{read}</a>
           <a class="card__link card__link--plain" href="{href_pdf}" download>{download}</a>
@@ -504,7 +562,7 @@ def book_card(item: dict, lang: str, depth: int) -> str:
     </div>"""
 
 
-def render_books(items: list[dict], lang: str, depth: int) -> str:
+def render_books(items: list[dict], lang: str, depth: int, h: str = "h3") -> str:
     if not items:
         return "    <p>" + ("No files yet." if lang == "en" else "עדיין אין קבצים.") + "</p>"
     cats: dict[str, list[dict]] = {}
@@ -515,7 +573,7 @@ def render_books(items: list[dict], lang: str, depth: int) -> str:
         if cat:
             out.append(f'    <h3 class="books-category-title">{esc(cat)}</h3>')
         out.append('    <div class="cards">')
-        out += [book_card(i, lang, depth) for i in cats[cat]]
+        out += [book_card(i, lang, depth, h) for i in cats[cat]]
         out.append("    </div>")
     return "\n".join(out)
 
@@ -526,11 +584,12 @@ def build_books() -> None:
         if not folder.exists():
             continue
         covers = folder / "covers"
-        covers.mkdir(exist_ok=True)
+        if not DRY_RUN:
+            covers.mkdir(exist_ok=True)
         items = scan_documents(folder, covers)
         write_json(folder / "manifest.json", {"items": items})
         for lang, page_path, depth in (("he", ROOT / "spiritual.html", 0), ("en", ROOT / "en" / "spiritual.html", 1)):
-            inject(page_path, dirname, render_books(items, lang, depth))
+            inject(page_path, dirname, render_books(items, lang, depth, "h4" if dirname == "transcripts" else "h3"))
         log(f"{dirname}: {len(items)} items")
 
 
@@ -545,7 +604,7 @@ def gallery_media(folder: Path) -> tuple[list[Path], list[Path]]:
         ext = p.suffix.lower()
         if ext in HEIC_EXT:
             jpg = convert_heic(p)
-            if jpg and jpg not in images:
+            if jpg and jpg.stem.lower() != "cover" and jpg not in images:
                 images.append(jpg)
         elif ext in IMAGE_EXT:
             if p.stem.lower() == "cover":
@@ -557,9 +616,12 @@ def gallery_media(folder: Path) -> tuple[list[Path], list[Path]]:
     images = sorted(set(images))
     bad = [p for p in images if not image_readable(p)]
     if bad:
-        names = ", ".join(b.name for b in bad[:5]) + (" ועוד" if len(bad) > 5 else "")
-        report("warn", f"בתיקייה {rel(folder)}: {len(bad)} קבצים נראים כתמונות אבל פגומים ולא ניתנים להצגה ({names}). "
-                       f"כדאי להעלות אותם מחדש.", rel(folder))
+        new_bad = [b for b in bad if rel(b) not in KNOWN_CORRUPT]
+        if new_bad:
+            names = ", ".join(b.name for b in new_bad[:5]) + (" ועוד" if len(new_bad) > 5 else "")
+            report("warn", f"בתיקייה {rel(folder)}: {len(new_bad)} קבצים נראים כתמונות אבל פגומים ולא ניתנים להצגה ({names}). "
+                           f"הם לא יוצגו. אם יש עותק תקין במחשב – להעלות אותו באותו שם.", rel(folder))
+        KNOWN_CORRUPT.update(rel(b) for b in bad)
         images = [p for p in images if p not in bad]
     return images, sorted(videos)
 
@@ -632,6 +694,22 @@ def thin_manual_gallery(folder: Path, images: list[Path]) -> None:
             CHANGED.append(rel(page))
 
 
+def remove_generated(folder: Path, keep_thumbs: bool = False) -> None:
+    """Delete pages/thumbs this script generated for a folder that is no longer a gallery."""
+    if DRY_RUN:
+        return
+    for stale in (folder / "index.html", folder / "index.en.html"):
+        if stale.exists() and MARKER in stale.read_text(encoding="utf-8", errors="replace"):
+            stale.unlink()
+            CHANGED.append(rel(stale))
+    thumbs = folder / "thumbs"
+    if thumbs.is_dir() and not keep_thumbs:
+        for t in thumbs.iterdir():
+            CHANGED.append(rel(t))
+            t.unlink()
+        thumbs.rmdir()
+
+
 def is_manual_gallery(folder: Path) -> bool:
     idx = folder / "index.html"
     if not idx.exists():
@@ -645,9 +723,8 @@ def find_cover(folder: Path, info: dict, images: list[Path]) -> Path | None:
         if c.exists():
             return c
         report("warn", f"בתיקייה {folder.name}: תמונת הכיסוי '{info['cover']}' שב-info.txt לא נמצאה", rel(folder))
-    for ext in (".jpg", ".jpeg", ".png", ".webp"):
-        c = folder / f"cover{ext}"
-        if c.exists():
+    for c in sorted(folder.iterdir()):
+        if c.is_file() and c.stem.lower() == "cover" and c.suffix.lower() in IMAGE_EXT:
             return c
     return images[0] if images else None
 
@@ -669,18 +746,19 @@ def gallery_page(g: dict, lang: str) -> str:
         vids_title, dl = "סרטונים", "להורדה"
     items = []
     for img in g["_images"]:
-        thumb = folder / "thumbs" / (img.stem + ".jpg")
-        src = rel(thumb) if thumb.exists() else rel(img)
+        thumb = g["_thumb_of"].get(img)
+        src = rel(thumb) if thumb and thumb.exists() else rel(img)
         items.append(f"""        <a href="{rp}{url(img)}" class="gallery__item" data-lightbox>
-          <img src="{rp}{url(src)}" alt="{esc(title)} — {esc(clean_name(img.stem))}" loading="lazy">
+          <img src="{rp}{url(src)}" alt="{esc(title)}" loading="lazy">
         </a>""")
     vids = []
     for v in g["_videos"]:
-        poster = folder / "thumbs" / (v.stem + ".jpg")
-        poster_attr = f' poster="{rp}{url(poster)}"' if poster.exists() else ""
+        poster = g["_thumb_of"].get(v)
+        poster_attr = f' poster="{rp}{url(poster)}"' if poster and poster.exists() else ""
+        vtype = {".mp4": "video/mp4", ".m4v": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime"}.get(v.suffix.lower(), "video/mp4")
         vids.append(f"""        <div class="video-item">
           <video controls preload="none"{poster_attr} playsinline>
-            <source src="{rp}{url(v)}" type="video/mp4">
+            <source src="{rp}{url(v)}" type="{vtype}">
           </video>
           <p class="video-item__meta"><a href="{rp}{url(v)}" download>{dl}</a> · {round(v.stat().st_size / 1048576)} MB</p>
         </div>""")
@@ -736,7 +814,7 @@ def gallery_card(g: dict, lang: str, depth: int) -> str:
     img = f'<img src="{rp}{url(cover)}" alt="" loading="lazy">' if cover else ""
     if g["placeholder"]:
         soon = "Coming soon" if lang == "en" else "בקרוב"
-        return f"""    <div class="card card--placeholder" aria-disabled="true">
+        return f"""    <div class="card card--placeholder">
       <div class="card__image">{img}</div>
       <div class="card__content">
         <h3 class="card__title">{esc(title)}</h3>
@@ -773,6 +851,7 @@ def build_galleries() -> None:
         if manual and not images and not videos:
             continue  # a hand-written page that is not a gallery (e.g. a redirect stub)
         if not manual and not images and not videos and cover is None:
+            remove_generated(folder)
             if folder.name not in ("thumbs",) and any(folder.iterdir()):
                 report("warn", f"התיקייה travel/{folder.name} לא מכילה תמונות או סרטונים, ולכן לא הפכה לגלריה. "
                                f"(תמונות: jpg/png/heic, סרטונים: mp4)", rel(folder))
@@ -780,25 +859,27 @@ def build_galleries() -> None:
         thumbs = folder / "thumbs"
         if manual:
             thin_manual_gallery(folder, images)
+        thumb_of: dict[Path, Path] = {}
         if not manual:
             for img in images:
-                make_thumb(img, thumbs / (img.stem + ".jpg"))
+                thumb_of[img] = thumbs / thumb_name(img, folder)
+                make_thumb(img, thumb_of[img])
             for v in videos:
-                video_poster(v, thumbs / (v.stem + ".jpg"))
-            # drop thumbs of deleted media
-            if thumbs.exists() and not DRY_RUN:
-                keep = {i.stem + ".jpg" for i in images} | {v.stem + ".jpg" for v in videos} | {"cover.jpg"}
-                for t in thumbs.iterdir():
-                    if t.name not in keep:
-                        t.unlink()
-                        CHANGED.append(rel(t))
+                thumb_of[v] = thumbs / thumb_name(v, folder)
+                video_poster(v, thumb_of[v])
         cover_thumb = None
         if cover is not None:
-            cover_thumb = thumbs / "cover.jpg"
-            if make_thumb(cover, cover_thumb) or cover_thumb.exists():
-                pass
+            cover_thumb = thumbs / f"cover.{file_sig(cover)[:6]}.jpg"
+            make_thumb(cover, cover_thumb)
             if not cover_thumb.exists():
                 cover_thumb = None
+        if not manual and thumbs.exists() and not DRY_RUN:
+            # drop thumbs of deleted or replaced media
+            keep = {t.name for t in thumb_of.values()} | ({cover_thumb.name} if cover_thumb else set())
+            for t in thumbs.iterdir():
+                if t.name not in keep:
+                    t.unlink()
+                    CHANGED.append(rel(t))
         date = exif_datetime(images[0]) if images else (exif_datetime(cover) if cover else None)
         if images:
             dates = [d for d in (exif_datetime(i) for i in images[:5]) if d]
@@ -822,15 +903,13 @@ def build_galleries() -> None:
             "link_en": f"{rel(folder)}/" + ("index.en.html" if (folder / "index.en.html").exists() or not manual else "index.html"),
             "_images": images,
             "_videos": videos,
+            "_thumb_of": thumb_of,
         }
         if not manual and not placeholder:
             write_text(folder / "index.html", gallery_page(g, "he"))
             write_text(folder / "index.en.html", gallery_page(g, "en"))
         elif placeholder:
-            for stale in (folder / "index.html", folder / "index.en.html"):
-                if stale.exists() and MARKER in stale.read_text(encoding="utf-8", errors="replace") and not DRY_RUN:
-                    stale.unlink()
-                    CHANGED.append(rel(stale))
+            remove_generated(folder, keep_thumbs=True)
         galleries.append(g)
 
     def sort_key(g):
@@ -950,7 +1029,7 @@ def teacher_page(t: dict, lang: str) -> str:
     if photos:
         rows = []
         for p in photos:
-            thumb = Path(t["folder"]) / "thumbs" / (p.stem + ".jpg")
+            thumb = Path(t["folder"]) / "thumbs" / thumb_name(p, Path(t["folder"]))
             make_thumb(p, thumb)
             src = rel(thumb) if thumb.exists() else rel(p)
             rows.append(f"""        <a href="{rp}{url(p)}" class="gallery__item" data-lightbox><img src="{rp}{url(src)}" alt="{esc(name)}" loading="lazy"></a>""")
@@ -978,9 +1057,9 @@ def teacher_page(t: dict, lang: str) -> str:
 
     <section class="section">
       <div class="container">
-        <div class="two-col two-col--top">
+        <div class="{'two-col two-col--top' if portrait else 'container--narrow'}">
           {portrait}
-          <div lang="{bio_lang}" {'dir="rtl"' if bio_lang == 'he' and lang == 'en' else ''}>
+          <div lang="{bio_lang}"{' dir="rtl"' if bio_lang == 'he' and lang == 'en' else ''}>
 {paragraphs(bio)}
 {wiki_btn}
           </div>
@@ -1020,7 +1099,7 @@ def teacher_card(t: dict, lang: str, depth: int) -> str:
       <div>
         <h3 class="person-card__name"><a href="{rp}{url(link)}">{esc(name)}</a></h3>
         {f'<p class="person-card__dates">{esc(meta)}</p>' if meta else ''}
-        <p class="person-card__bio" lang="{bio_lang}" {'dir="rtl"' if bio_lang == 'he' and lang == 'en' else ''}>{esc(bio)}</p>
+        <p class="person-card__bio" lang="{bio_lang}"{' dir="rtl"' if bio_lang == 'he' and lang == 'en' else ''}>{esc(bio)}</p>
         <a href="{rp}{url(link)}" class="btn mt-2">{more}</a>
       </div>
     </div>"""
@@ -1098,7 +1177,7 @@ def fetch_archive_org() -> list[dict] | None:
     for d in docs:
         coll = d.get("collection") or []
         coll = [coll] if isinstance(coll, str) else coll
-        if d.get("mediatype") == "collection" or "emptyfiles" in coll:
+        if d.get("mediatype") not in ("audio", "movies") or "emptyfiles" in coll:
             continue
         if not archive_item_has_content(d["identifier"]):
             continue
@@ -1195,6 +1274,9 @@ def build_inbox() -> None:
         dest.parent.mkdir(parents=True, exist_ok=True)
         p.rename(dest)
         CHANGED.append(rel(dest))
+        if dest.parent.parent == ROOT / "travel" and not (dest.parent / "info.txt").exists():
+            write_text(dest.parent / "info.txt", f"כותרת: תמונות חדשות ({today})\nתיאור: תמונות שהועלו לתיקייה הראשית. כדי להציג אותן באתר – למחוק את השורה 'מוסתר' ולתת שם.\nמוסתר: כן\n")
+            msg += ". הגלריה מוסתרת עד שנותנים לה שם (לוח הבקרה ← לתקן טקסט)"
         report("ok", msg, rel(dest))
 
 
@@ -1244,7 +1326,8 @@ def write_report() -> None:
             lines += [f"- {r['he']}" + (f"  \n  `{r['path']}`" if r["path"] else "") for r in rows]
     lines += ["", "---", "", "הדוח הזה נוצר אוטומטית על ידי `scripts/build_content.py` בכל עדכון של האתר.", ""]
     data = {"updated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-            "ok": not errors, "errors": errors, "warnings": warns, "done": oks}
+            "ok": not errors, "errors": errors, "warnings": warns, "done": oks,
+            "known_corrupt": sorted(KNOWN_CORRUPT)}
     # the report is informational: never let its own timestamp create a commit on its own
     prev = None
     if REPORT_JSON.exists():
@@ -1252,8 +1335,8 @@ def write_report() -> None:
             prev = json.loads(REPORT_JSON.read_text(encoding="utf-8"))
         except Exception:  # noqa: BLE001
             prev = None
-    same = bool(prev) and {k: prev.get(k) for k in ("ok", "errors", "warnings")} == \
-        {k: data[k] for k in ("ok", "errors", "warnings")}
+    same = bool(prev) and {k: prev.get(k) for k in ("ok", "errors", "warnings", "known_corrupt")} == \
+        {k: data[k] for k in ("ok", "errors", "warnings", "known_corrupt")}
     if same and not CHANGED:
         return  # nothing happened: keep the previous report (no noise commits)
     write_json(REPORT_JSON, data)
@@ -1272,6 +1355,11 @@ def main(argv=None) -> int:
     DRY_RUN, NO_NETWORK = args.dry_run, args.no_network
     steps = [s for s in args.only.split(",") if s] or ["inbox", "books", "galleries", "teachers", "recordings", "sitemap"]
     os.chdir(ROOT)
+    if REPORT_JSON.exists():
+        try:
+            KNOWN_CORRUPT.update(json.loads(REPORT_JSON.read_text(encoding="utf-8")).get("known_corrupt", []))
+        except Exception:  # noqa: BLE001
+            pass
     for step in steps:
         fn = {"inbox": build_inbox, "books": build_books, "galleries": build_galleries,
               "teachers": build_teachers, "recordings": build_recordings, "sitemap": build_sitemap}.get(step)

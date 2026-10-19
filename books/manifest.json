@@ -1,6 +1,8 @@
 {
  "items": [
   {
+   "sidecar": "books/הספר על הטאבו פתוח.txt",
+   "source_sig": null,
    "title": "הספר אודות הטאבו",
    "title_en": "The Book: On the Taboo",
    "description": "תרגום הספר \"The Book: On the Taboo Against Knowing Who You Are\" מאת אלן ואטס.",
@@ -12,6 +14,8 @@
    "order": "1"
   },
   {
+   "sidecar": "books/איך לצאת מדעתך בפחות משעה.txt",
+   "source_sig": null,
    "title": "לצאת מן הדעת",
    "title_en": "Losing Your Mind",
    "description": "איך לצאת מדעתך בפחות משעה – על שחרור מהזדהות עם המחשבה והאגו.",
@@ -23,6 +27,8 @@
    "order": "2"
   },
   {
+   "sidecar": "books/שיחות אתי הילסום.txt",
+   "source_sig": null,
    "title": "שיחות אתי הילסום",
    "title_en": "Conversations on Etty Hillesum",
    "description": "שיחות על יומנה של אתי הילסום – כמסע להארה.",
@@ -34,6 +40,8 @@
    "order": "3"
   },
   {
+   "sidecar": "books/הודו בשיער שיבה עם שער.txt",
+   "source_sig": null,
    "title": "הודו בשיער שיבה",
    "title_en": "India with Grey Hair",
    "description": "רשמים והרהורים ממסעות להודו לאחר שנים רבות. מבט אחר דרך עיניים שנצברה בהן חוכמה.",
@@ -45,6 +53,8 @@
    "order": "4"
   },
   {
+   "sidecar": "books/חוכמה מלאה שמחה.txt",
+   "source_sig": null,
    "title": "חוכמה מלאה שמחה",
    "title_en": "The Wisdom of Insecurity",
    "description": "מאת אלן ואטס – על החוכמה שבחוסר הביטחון והשמחה שבקבלת הרגע.",
@@ -56,6 +66,8 @@
    "order": "5"
   },
   {
+   "sidecar": null,
+   "source_sig": null,
    "title": "להיות מודעות",
    "title_en": "",
    "description": "",
@@ -67,6 +79,8 @@
    "order": ""
   },
   {
+   "sidecar": null,
+   "source_sig": null,
    "title": "פרויד יונג ונוימן",
    "title_en": "",
    "description": "",
@@ -78,6 +92,8 @@
    "order": ""
   },
   {
+   "sidecar": null,
+   "source_sig": null,
    "title": "שלושת מאפייני הקיום",
    "title_en": "",
    "description": "",
@@ -89,6 +105,8 @@
    "order": ""
   },
   {
+   "sidecar": null,
+   "source_sig": null,
    "title": "שני דובים חפיז עברית",
    "title_en": "",
    "description": "",
