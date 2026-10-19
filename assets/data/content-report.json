@@ -1,0 +1,18 @@
+{
+ "updated": "2026-10-19T21:21:27+00:00",
+ "ok": true,
+ "errors": [],
+ "warnings": [
+  {
+   "level": "warn",
+   "he": "בתיקייה travel/india/pictures: 43 קבצים נראים כתמונות אבל פגומים ולא ניתנים להצגה (@Paleolim-Creatures-010.jpg, Benaulim-031.jpg, Ganga-Rafting-057.jpg, Jaislamar-Haveli-&-Fort-063a.jpg, Jaislamar-Haveli-&-Fort-171.jpg ועוד). כדאי להעלות אותם מחדש.",
+   "path": "travel/india/pictures"
+  },
+  {
+   "level": "warn",
+   "he": "בתיקייה travel/myanmar/pictures: 77 קבצים נראים כתמונות אבל פגומים ולא ניתנים להצגה (Pa-Ya to Yangoon 066.jpg, Pindia cave 011.jpg, Yangon 029.jpg, Yangon 037.jpg, Bagan to Pa-Ya 41.jpg ועוד). כדאי להעלות אותם מחדש.",
+   "path": "travel/myanmar/pictures"
+  }
+ ],
+ "done": []
+}
