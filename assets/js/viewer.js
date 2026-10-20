@@ -16,8 +16,8 @@
   var base = window.VIEWER_BASE || '';
   var he = (window.VIEWER_LANG || 'he') === 'he';
   var T = he
-    ? { bad: 'לא נמצא קובץ להצגה.', fail: 'לא הצלחתי להציג את הקובץ כאן. אפשר להוריד אותו או לפתוח בחלון חדש.', page: 'עמוד', loading: 'טוען…' }
-    : { bad: 'No file to show.', fail: 'The file could not be displayed here. You can download it or open it in a new tab.', page: 'Page', loading: 'Loading…' };
+    ? { bad: 'לא נמצא קובץ להצגה.', fail: 'לא הצלחתי להציג את הקובץ כאן. אפשר להוריד אותו או לפתוח בחלון חדש.', page: 'עמוד', loading: 'טוען…', dl: 'להורדת הקובץ (PDF)', open: 'פתיחה בחלון חדש', end: 'סוף הקובץ' }
+    : { bad: 'No file to show.', fail: 'The file could not be displayed here. You can download it or open it in a new tab.', page: 'Page', loading: 'Loading…', dl: 'Download the file (PDF)', open: 'Open in a new tab', end: 'End of file' };
 
   var pagesEl = document.getElementById('pages');
   var titleEl = document.getElementById('title');
@@ -37,13 +37,20 @@
   var name = file.split('/').pop().replace(/\.pdf$/i, '').replace(/_/g, ' ');
   titleEl.textContent = name;
   document.title = name + ' | ' + (he ? 'אפי פז' : 'Efi Paz');
-  document.getElementById('download').href = url;
-  document.getElementById('download').setAttribute('download', file.split('/').pop());
-  document.getElementById('open').href = url;
+  // Every file keeps a download link, but not in the toolbar: it sits under the last page (and in the fallback).
+  function links(label) {
+    var row = document.createElement('p'); row.className = 'viewer__end';
+    if (label) { var l = document.createElement('span'); l.textContent = label + ' · '; row.appendChild(l); }
+    var dl = document.createElement('a'); dl.href = url; dl.setAttribute('download', file.split('/').pop()); dl.textContent = T.dl; row.appendChild(dl);
+    row.appendChild(document.createTextNode(' · '));
+    var op = document.createElement('a'); op.href = url; op.target = '_blank'; op.rel = 'noopener'; op.textContent = T.open; row.appendChild(op);
+    return row;
+  }
 
   function fallback() {
     pagesEl.innerHTML = '';
     var p = document.createElement('p'); p.className = 'viewer__msg'; p.textContent = T.fail; pagesEl.appendChild(p);
+    pagesEl.appendChild(links(''));
     var f = document.createElement('iframe'); f.className = 'viewer__fallback'; f.src = url; f.title = name; pagesEl.appendChild(f);
   }
 
@@ -62,9 +69,14 @@
   } catch (e) { fallback(); }
 
   // --- layout + lazy rendering
-  var pdf = null, scale = 1;
-  var dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.5 : 2);
+  var pdf = null;
   var observer = null;
+  // Zoom is the browser's own (pinch / Ctrl+wheel). Pages are re-drawn at the zoomed resolution so they stay sharp.
+  function dpr() {
+    var z = (window.visualViewport && window.visualViewport.scale) || 1;
+    // phones keep a lower cap: canvas memory on iOS is limited and 4-8 pages stay drawn
+    return Math.min((window.devicePixelRatio || 1) * z, window.innerWidth < 700 ? 2 : 3);
+  }
   var VISIBLE_MARGIN = '150% 0px';  // render pages within 1.5 screens of the viewport, release the rest
 
   function render(doc) {
@@ -81,6 +93,7 @@
         c.dataset.ratio = ratio;
         pagesEl.appendChild(c);
       }
+      pagesEl.appendChild(links(T.end));
       layout();
       observer = new IntersectionObserver(onVisible, { rootMargin: VISIBLE_MARGIN });
       Array.prototype.forEach.call(pagesEl.querySelectorAll('canvas'), function (c) { observer.observe(c); });
@@ -88,11 +101,12 @@
       window.addEventListener('scroll', updateCounter, { passive: true });
       var t;
       window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(relayout, 200); });
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(relayout, 300); });
       updateCounter();
     }, fallback);
   }
 
-  function columnWidth() { return Math.min(pagesEl.clientWidth - 24, 900) * scale; }
+  function columnWidth() { return Math.min(pagesEl.clientWidth - 24, 900); }
 
   function layout() {
     var width = columnWidth();
@@ -125,20 +139,25 @@
   function draw(canvas) {
     if (!pdf || canvas.dataset.rendering === '1') return;
     var width = columnWidth();
-    if (canvas.dataset.drawnWidth === String(Math.floor(width)) && canvas.width) return;
+    var ratio = dpr();
+    if (canvas.dataset.drawnWidth === String(Math.floor(width)) && canvas.dataset.drawnDpr === String(ratio) && canvas.width) return;
     canvas.dataset.rendering = '1';
     pdf.getPage(parseInt(canvas.getAttribute('data-page'), 10)).then(function (page) {
       var vp = page.getViewport({ scale: 1 });
       var v = page.getViewport({ scale: width / vp.width });
-      canvas.width = Math.floor(v.width * dpr);
-      canvas.height = Math.floor(v.height * dpr);
+      canvas.width = Math.floor(v.width * ratio);
+      canvas.height = Math.floor(v.height * ratio);
       canvas.style.width = Math.floor(v.width) + 'px';
       canvas.style.height = Math.floor(v.height) + 'px';
       canvas.dataset.ratio = v.height / v.width;
       var ctx = canvas.getContext('2d');
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       return page.render({ canvasContext: ctx, viewport: v }).promise;
-    }).then(function () { canvas.dataset.drawnWidth = String(Math.floor(width)); canvas.dataset.rendering = ''; updateCounter(); },
+    }).then(function () {
+      canvas.dataset.drawnWidth = String(Math.floor(width)); canvas.dataset.drawnDpr = String(ratio); canvas.dataset.rendering = ''; updateCounter();
+      // zoomed or resized while this page was rendering: draw it again at the current size
+      if (canvas.dataset.visible === '1' && (Math.floor(columnWidth()) !== Math.floor(width) || dpr() !== ratio)) draw(canvas);
+    },
             function () { canvas.dataset.rendering = ''; });
   }
 
@@ -154,6 +173,4 @@
     pageEl.textContent = current + ' / ' + pdf.numPages;
   }
 
-  document.getElementById('zoom-in').addEventListener('click', function () { scale = Math.min(scale + 0.25, 3); relayout(); });
-  document.getElementById('zoom-out').addEventListener('click', function () { scale = Math.max(scale - 0.25, 0.5); relayout(); });
 })();

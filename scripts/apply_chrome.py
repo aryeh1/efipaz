@@ -28,14 +28,15 @@ SECTIONS = {
     "": ("home", None),
     "en": ("home", None),
     "living": ("archive", "living.html"),
-    "personal": ("archive", "personal.html"),
+    "personal": ("archive", "archive.html"),
     "business": ("archive", "archive.html"),
     "teachers": ("spiritual", "spiritual.html"),
     "travel": ("travel", "travel.html"),
 }
 ROOT_ACTIVE = {"index": "home", "spiritual": "spiritual", "travel": "travel", "archive": "archive",
-               "living": "archive", "personal": "archive", "ethics": "archive", "family": "archive",
-               "admin": "home", "404": "home"}
+               "living": "archive", "ethics": "archive", "admin": "home", "404": "home"}
+# English-only description pages whose Hebrew counterpart is the original site itself
+EN_ALT = {"living": "../living/index.html", "ethics": "../personal/ethics/index.html"}
 
 HEADER_RE = re.compile(r"[ \t]*<header class=\"header\">.*?</header>\n?", re.S)
 FOOTER_RE = re.compile(r"[ \t]*<footer class=\"footer\">.*?</footer>\n?", re.S)
@@ -61,7 +62,7 @@ def classify(path: Path):
     top = parts[0] if len(parts) > 1 else ""
     if top == "en":
         active = ROOT_ACTIVE.get(path.stem, "home")
-        alt = f"../{path.stem}.html" if path.stem in ROOT_ACTIVE else None
+        alt = EN_ALT.get(path.stem) or (f"../{path.stem}.html" if path.stem in ROOT_ACTIVE else None)
     elif top == "":
         active = ROOT_ACTIVE.get(path.stem, "home")
         alt = f"en/{path.stem}.html" if path.stem in ROOT_ACTIVE and path.stem not in ("admin", "404") else None
@@ -69,6 +70,8 @@ def classify(path: Path):
             alt = "/en/index.html"
     else:
         active, en_page = SECTIONS.get(top, ("home", None))
+        if top == "personal" and len(parts) > 2 and parts[1] == "ethics":
+            en_page = "ethics.html"
         if path.name == "index.en.html":
             lang = "en"
             alt = "index.html"

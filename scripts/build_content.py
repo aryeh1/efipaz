@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import html
 import io
 import json
 import os
@@ -171,6 +172,10 @@ KEY_ALIASES = {
     "cover": {"cover", "portrait", "image", "תמונה", "שער", "כיסוי", "פורטרט"},
     "order": {"order", "סדר"},
     "hidden": {"hidden", "מוסתר", "להסתיר"},
+    "links": {"links", "קישורים"},                       # one per line: label | https://...
+    "links_en": {"links_en", "קישורים באנגלית"},
+    "pages_intro": {"pages_intro", "עמודים", "הקדמה לעמודים"},  # sentence shown above the extra pages list
+    "pages_intro_en": {"pages_intro_en", "עמודים באנגלית"},
 }
 ALIAS_TO_KEY = {a: k for k, aliases in KEY_ALIASES.items() for a in aliases}
 POSITIONAL = ["title", "description", "title_en", "description_en"]
@@ -930,9 +935,9 @@ def build_galleries() -> None:
 def html_title(p: Path) -> str:
     try:
         t = read_text_tolerant(p)
-        m = re.search(r"<title[^>]*>(.*?)</title>", t, re.I | re.S)
+        m = re.search(r"<h1[^>]*>(.*?)</h1>", t, re.I | re.S) or re.search(r"<title[^>]*>(.*?)</title>", t, re.I | re.S)
         if m:
-            title = re.sub(r"\s+", " ", m.group(1)).strip()
+            title = html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(1))).strip())
             title = re.sub(r"\s*[|\-–]\s*(אפי פז|Efi Paz).*$", "", title)
             return title or p.stem
     except Exception:  # noqa: BLE001
@@ -960,10 +965,12 @@ def teacher_files(folder: Path) -> dict[str, list[Path]]:
         elif ext in VIDEO_EXT:
             out["video"].append(p)
         elif ext in (".html", ".htm") and p.name not in ("index.html", "index.en.html"):
-            out["html"].append(p)
+            if 'http-equiv="refresh"' not in read_text_tolerant(p)[:600]:   # redirect stubs are not pages
+                out["html"].append(p)
         elif ext in IMAGE_EXT and p.name.lower() not in IGNORED_IMAGE_NAMES and not p.name.lower().startswith("thumb_"):
             out["image"].append(p)
     out["pdf"] = sorted(set(out["pdf"]))
+    out["html"].sort(key=lambda q: q.name.lower())
     return out
 
 
@@ -978,9 +985,9 @@ def teacher_page(t: dict, lang: str) -> str:
     wiki = (t["wiki_en"] if lang == "en" and t["wiki_en"] else t["wiki"]) or t["wiki_en"] or t["wiki"]
     L = {
         "he": dict(crumb="מורים", docs="ספרים ומאמרים", audio="הקלטות", pages="עמודים נוספים", photos="תמונות",
-                   read="לקריאה", dl="להורדה", wiki="ויקיפדיה", back="חזרה לכל המורים", videos="סרטונים"),
+                   read="לקריאה", dl="להורדה", wiki="ויקיפדיה", back="חזרה לכל המורים", videos="סרטונים", links="קישורים"),
         "en": dict(crumb="Teachers", docs="Books & articles", audio="Recordings", pages="More pages", photos="Photos",
-                   read="Read", dl="Download", wiki="Wikipedia", back="Back to all teachers", videos="Videos"),
+                   read="Read", dl="Download", wiki="Wikipedia", back="Back to all teachers", videos="Videos", links="Links"),
     }[lang]
     meta = " | ".join(x for x in (t["dates"], role) if x)
     portrait = ""
@@ -1019,12 +1026,30 @@ def teacher_page(t: dict, lang: str) -> str:
         sections.append(("videos", rows))
     if t["_files"]["html"]:
         rows = []
+        intro = t.get("pages_intro_en") if lang == "en" else t.get("pages_intro")
+        if intro:
+            rows.append(f"""        <p class="document-list__intro">{esc(intro)}</p>""")
         for p in t["_files"]["html"]:
             rows.append(f"""        <a class="document-item" href="{rp}{url(p)}">
           <div class="document-item__icon">WEB</div>
           <div class="document-item__info"><div class="document-item__title">{esc(html_title(p))}</div></div>
         </a>""")
         sections.append(("pages", rows))
+    links_text = (t.get("links_en") if lang == "en" else "") or t.get("links") or ""
+    if links_text:
+        rows = []
+        for line in links_text.splitlines():
+            if "|" not in line:
+                continue
+            label, href = (x.strip() for x in line.split("|", 1))
+            if not href.startswith(("http://", "https://")):
+                continue
+            rows.append(f"""        <a class="document-item" href="{esc(href)}" target="_blank" rel="noopener">
+          <div class="document-item__icon">WEB</div>
+          <div class="document-item__info"><div class="document-item__title">{esc(label)}</div></div>
+        </a>""")
+        if rows:
+            sections.append(("links", rows))
     photos = [p for p in t["_files"]["image"] if rel(p) != t["portrait"] and image_size(p)[0] >= 400]
     if photos:
         rows = []
@@ -1036,7 +1061,7 @@ def teacher_page(t: dict, lang: str) -> str:
         sections.append(("photos", rows))
     sec_html = []
     for i, (key, rows) in enumerate(sections):
-        wrapper = {"docs": "document-list", "audio": "audio-list", "pages": "document-list",
+        wrapper = {"docs": "document-list", "audio": "audio-list", "pages": "document-list", "links": "document-list",
                    "photos": "gallery gallery--full", "videos": "videos-grid"}[key]
         sec_html.append(f"""    <section class="section{' section--alt' if i % 2 == 0 else ''}" id="{key}">
       <div class="container">
@@ -1138,6 +1163,10 @@ def build_teachers() -> None:
             "bio_en": info.get("bio_en") or info.get("description_en") or "",
             "wiki": info.get("wiki") or "",
             "wiki_en": info.get("wiki_en") or "",
+            "links": info.get("links") or "",
+            "links_en": info.get("links_en") or "",
+            "pages_intro": info.get("pages_intro") or "",
+            "pages_intro_en": info.get("pages_intro_en") or "",
             "portrait": rel(portrait) if portrait else None,
             "order": info.get("order") or "",
             "link": f"teachers/{folder.name}/index.html",
@@ -1284,8 +1313,11 @@ def build_inbox() -> None:
 
 def build_sitemap() -> None:
     pages: list[tuple[str, str | None]] = []  # (path, alternate path)
-    for name in ("", "spiritual.html", "travel.html", "archive.html", "living.html", "personal.html", "ethics.html", "family.html"):
+    for name in ("", "spiritual.html", "travel.html", "archive.html"):
         pages.append((name, "en/" + name))
+    # English descriptions of the Hebrew-only original sites
+    pages.append(("living/index.html", "en/living.html"))
+    pages.append(("personal/ethics/index.html", "en/ethics.html"))
     for folder in sorted(p for p in TRAVEL_DIR.iterdir() if p.is_dir()):
         if (folder / "index.html").exists() and MARKER in (folder / "index.html").read_text(encoding="utf-8", errors="replace"):
             pages.append((f"{rel(folder)}/", f"{rel(folder)}/index.en.html"))
