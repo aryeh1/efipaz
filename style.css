@@ -1352,7 +1352,7 @@ blockquote, .quote {
 .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-md); }
 .video-item video { width: 100%; aspect-ratio: 16 / 9; background: var(--color-text); display: block; }
 .recording__player { margin: var(--space-sm) 0; }
-.recording__player iframe { width: 100%; height: 300px; border: 1px solid var(--color-border); }
+.recording__player iframe { width: 100%; height: 640px; border: 1px solid var(--color-border); }  /* tall enough for the whole playlist */
 .btn--small { padding: calc(var(--space-xs) / 2) var(--space-sm); font-size: 0.85rem; }
 
 /* Lightbox: וידאו, שגיאה, קישור לפתיחה */
@@ -1371,7 +1371,7 @@ blockquote, .quote {
 }
 .lightbox__open:hover { opacity: 1; color: var(--color-bg); }
 
-/* viewer (pdf.js): one bar — back · title · [page counter, zoom, download, new tab] */
+/* viewer (pdf.js): one thin bar — back · title · page counter. Zoom is the browser's; download sits under the last page */
 .viewer { display: flex; flex-direction: column; min-height: 100vh; }
 .viewer__bar {
   position: sticky; top: 0; z-index: 50;
@@ -1380,17 +1380,14 @@ blockquote, .quote {
   background: var(--color-bg); border-bottom: 1px solid var(--color-border);
 }
 .viewer__title { flex: 1 1 160px; min-width: 0; font-size: 1rem; font-weight: 500; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.viewer__tools { display: flex; align-items: center; gap: var(--space-xs); }
+
 .viewer__bar .btn { padding: 6px 12px; min-height: 40px; display: inline-flex; align-items: center; font-size: 0.95rem; }
-.viewer__bar #zoom-in, .viewer__bar #zoom-out { min-width: 40px; justify-content: center; font-size: 1.2rem; }
 .viewer__back::before { content: '\2039'; margin-inline-end: 6px; font-size: 1.2em; line-height: 1; }
 [dir="ltr"] .viewer__back::before { content: '\2039'; }
 .viewer__page { font-size: 0.9rem; color: var(--color-text-light); min-width: 64px; text-align: center; direction: ltr; unicode-bidi: isolate; }
-.viewer__pages { flex: 1; padding: var(--space-sm); background: var(--color-bg-alt); overflow-x: auto; }
-@media (max-width: 600px) {
-  .viewer__tools { flex-basis: 100%; justify-content: space-between; }
-  .viewer__bar #open { display: none; }
-}
+.viewer__pages { flex: 1; padding: var(--space-sm); background: var(--color-bg-alt); }
+.viewer__end { text-align: center; padding: var(--space-md) 0 var(--space-lg); color: var(--color-text-light); }
+.viewer__end a { display: inline-block; padding: 8px 4px; }
 .viewer__canvas { display: block; margin: 0 auto var(--space-sm); max-width: 100%; height: auto; box-shadow: 0 1px 4px rgba(26, 26, 26, 0.15); background: #fff; }
 .viewer__fallback { width: 100%; height: calc(100vh - 60px); border: none; }
 .viewer__msg { padding: var(--space-lg); text-align: center; color: var(--color-text-light); }
@@ -1461,7 +1458,7 @@ blockquote, .quote {
 main a, .document-item__title { overflow-wrap: anywhere; }
 
 .footer__links a { display: inline-block; padding: 6px 0; }
-.viewer__bar[data-empty="1"] .viewer__tools { display: none; }
+.viewer__bar[data-empty="1"] .viewer__page { display: none; }
 
 /* עוגנים פנימיים נעצרים מתחת לכותרת הדביקה, לא מאחוריה */
 [id] { scroll-margin-top: 5.5rem; }

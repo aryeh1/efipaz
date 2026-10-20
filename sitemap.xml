@@ -41,44 +41,24 @@
     <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/archive.html"/>
   </url>
   <url>
-    <loc>https://www.efipaz.com/living.html</loc>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/living.html"/>
+    <loc>https://www.efipaz.com/living/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/living/index.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/living.html"/>
   </url>
   <url>
     <loc>https://www.efipaz.com/en/living.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/living.html"/>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/living.html"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/living/index.html"/>
   </url>
   <url>
-    <loc>https://www.efipaz.com/personal.html</loc>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/personal.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/personal.html"/>
-  </url>
-  <url>
-    <loc>https://www.efipaz.com/en/personal.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/personal.html"/>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/personal.html"/>
-  </url>
-  <url>
-    <loc>https://www.efipaz.com/ethics.html</loc>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/ethics.html"/>
+    <loc>https://www.efipaz.com/personal/ethics/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/personal/ethics/index.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/ethics.html"/>
   </url>
   <url>
     <loc>https://www.efipaz.com/en/ethics.html</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/ethics.html"/>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/ethics.html"/>
-  </url>
-  <url>
-    <loc>https://www.efipaz.com/family.html</loc>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/family.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/family.html"/>
-  </url>
-  <url>
-    <loc>https://www.efipaz.com/en/family.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.efipaz.com/en/family.html"/>
-    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/family.html"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://www.efipaz.com/personal/ethics/index.html"/>
   </url>
   <url>
     <loc>https://www.efipaz.com/travel/USA%202025%20%20Blue%20Ridge/</loc>

@@ -58,7 +58,6 @@ FOOTER = {
             ("archive.html#old-site", "האתר הישן"),
         ]),
         ("עוד", [
-            ("personal.html", "אישי"),
             ("en/index.html", "English"),
         ]),
     ],
@@ -80,7 +79,6 @@ FOOTER = {
             ("archive.html#old-site", "The old site"),
         ]),
         ("More", [
-            ("personal.html", "Personal"),
             ("../index.html", "עברית"),
         ]),
     ],

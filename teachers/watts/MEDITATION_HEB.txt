@@ -1,2 +1,2 @@
-כותרת: מדיטציה (תרגום לעברית)
-title_en: Meditation (Hebrew translation)
+כותרת: תרגול מדיטציה (תרגום לעברית)
+title_en: Practising Meditation (Hebrew translation)

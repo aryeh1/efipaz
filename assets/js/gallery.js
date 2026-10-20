@@ -182,7 +182,7 @@
         if (!holder || !src || !/^https:\/\/archive\.org\/embed\//.test(src)) return;
         if (!holder.firstChild) {
           var f = document.createElement('iframe');
-          f.src = src + '?playlist=1&list_height=200';
+          f.src = src + '?playlist=1&list_height=540';
           f.setAttribute('allowfullscreen', '');
           f.setAttribute('loading', 'lazy');
           f.title = card.querySelector('.card__title').textContent;

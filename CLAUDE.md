@@ -19,17 +19,16 @@
 ```
 efipaz/
 ├── index.html spiritual.html travel.html archive.html   # 4 עמודי התפריט (עברית)
-├── living.html personal.html ethics.html family.html    # תתי-עמודים של הארכיון
 ├── admin.html              # לוח הבקרה של אפי (noindex, לא בתפריט)
 ├── viewer.html             # קורא PDF (pdf.js) – viewer.html?file=<נתיב>
 ├── 404.html  style.css  sitemap.xml  robots.txt  HOWTO.md  content-report.md
-├── en/                     # אותם עמודים באנגלית (index, spiritual, travel, archive, living, personal, ethics, family, viewer)
+├── en/                     # אותם עמודים באנגלית (index, spiritual, travel, archive, viewer) + living/ethics: תיאור באנגלית של האתרים העבריים
 ├── books/                  # ספרים: PDF/Word → שער + כרטיס אוטומטי. <שם>.txt לכותרת/תיאור
 ├── transcripts/            # תמלולים (קבוצות) – אותו מנגנון כמו books
 ├── travel/<תיקייה>/        # כל תיקייה עם תמונות = גלריה. info.txt אופציונלי, cover.jpg אופציונלי
 │   ├── india/ myanmar/     # גלריות ידניות (עם קטגוריות) – index.html נכתב ביד, לא נדרס
 │   └── thumbs/             # נוצר אוטומטית
-├── teachers/<id>/          # הוגה: info.txt + portrait.jpg + קבצים → index.html + index.en.html אוטומטיים
+├── teachers/<id>/          # הוגה: info.txt + portrait.jpg + קבצים → index.html + index.en.html אוטומטיים. עמוד אחד להוגה: אין עמודי סקירה ידניים לצידו
 ├── recordings/manifest.json  # רשימת ההקלטות מ-archive.org (אוטומטי)
 ├── living/ personal/ business/   # עמודי תוכן ישנים שהומרו (טקסט מקורי של אפי)
 ├── archive/                # ארכיון: courses/, family/, misc/, ו-old-site/ (האתר הישן כפי שהיה, UTF-8, לא נוגעים בתוכן)
@@ -86,7 +85,7 @@ efipaz/
 | עמודי השורש, `en/`, `books/`, `transcripts/`, `travel/`, `teachers/`, `living/`, `personal/`, `business/`, `assets/`, `scripts/` | `archive/` כולו, ובמיוחד `archive/old-site/` (האתר הישן כפי שהיה) |
 
 - `archive/old-site/` נגיש מ-`archive.html#old-site`. אין להמיר קידוד, אין "לשפר", אין למחוק.
-- קישורים מעמודים חיים אל `archive/old-site/` מותרים רק מ-`archive.html` ו-`ethics.html` (ה-checker אוכף).
+- קישורים מעמודים חיים אל `archive/old-site/` מותרים רק מ-`archive.html`, `en/ethics.html` ו-`personal/ethics/index.html` (ה-checker אוכף).
 - בשורש נשארים redirect stubs לנתיבים הישנים הציבוריים (`/LightOfIndia/`, `/Burma/`, `/Ethics/` וכו').
 
 ---
@@ -117,6 +116,15 @@ python3 scripts/build_content.py   # ריצה שנייה: חייבת לדווח 
 - [ ] אם שינית `sitechrome.py` – הרצת `apply_chrome.py`
 
 ---
+
+## מבנה תוכן – כללים
+
+- **עמוד אחד לכל דבר.** להוגה יש עמוד אחד (נוצר אוטומטית). עמודי משנה (פרק מתורגם, מאמר) הם תוכן, לא "סקירה" נוספת.
+  עמוד שמשכפל עמוד אחר נמחק ומשאיר redirect stub. עמוד בלי תוכן (למשל "הסרטון הוסר") נמחק.
+- **הארכיון מצביע ישירות על האתרים המקוריים** (`living/index.html`, `personal/ethics/index.html`, `business/index.html`),
+  בלי שכבת "סקירה" ביניהם. אין עמודי living/ethics/personal/family בשורש (נותרו redirect stubs).
+- מטא-דאטה ב-`info.txt` של הוגה: בנוסף לשדות הרגילים, `קישורים:` (שורה לכל קישור, `תווית | https://…`) ו-`עמודים:` (משפט מעל רשימת עמודי המשנה).
+- כותרת של עמוד משנה נלקחת מה-`<h1>` שלו; כותרת של PDF מה-`.txt` שלידו – חייבת להתאים למה שכתוב בקובץ עצמו.
 
 ## היסטוריה חשובה (למד משגיאות העבר)
 
